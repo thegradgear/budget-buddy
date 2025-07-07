@@ -52,7 +52,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold font-headline">Welcome, {user?.displayName?.split(' ')[0] || 'Buddy'}!</h1>
+        <h1 className="text-h2 font-semibold">Welcome, {user?.displayName?.split(' ')[0] || 'Buddy'}!</h1>
         <Button onClick={openAddModal}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Add Transaction

@@ -9,6 +9,17 @@ export default {
   ],
   theme: {
     extend: {
+      fontSize: {
+        'display': ['3rem', { fontWeight: '700', lineHeight: '1.2' }],
+        'h1': ['2.25rem', { fontWeight: '600', lineHeight: '1.2' }],
+        'h2': ['1.875rem', { fontWeight: '600', lineHeight: '1.25' }],
+        'h3': ['1.5rem', { fontWeight: '600', lineHeight: '1.3' }],
+        'h4': ['1.25rem', { fontWeight: '500', lineHeight: '1.4' }],
+        'body-lg': ['1.125rem', { fontWeight: '400', lineHeight: '1.6' }],
+        'body': ['1rem', { fontWeight: '400', lineHeight: '1.5' }],
+        'body-sm': ['0.875rem', { fontWeight: '400', lineHeight: '1.4' }],
+        'caption': ['0.75rem', { fontWeight: '500', lineHeight: '1' }],
+      },
       fontFamily: {
         body: ['Inter', 'sans-serif'],
         headline: ['Inter', 'sans-serif'],

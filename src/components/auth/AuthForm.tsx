@@ -202,7 +202,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         <div className="mb-4 flex justify-center">
           <Logo />
         </div>
-        <CardTitle className="text-2xl font-headline">{titles[view]}</CardTitle>
+        <CardTitle className="text-h3 font-semibold">{titles[view]}</CardTitle>
         <CardDescription>{descriptions[view]}</CardDescription>
       </CardHeader>
       <CardContent>

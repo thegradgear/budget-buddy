@@ -25,10 +25,10 @@ export default function Home() {
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
+                  <h1 className="text-h1 font-semibold tracking-tight sm:text-display sm:font-bold">
                     Take Control of Your Finances with Budget Buddy
                   </h1>
-                  <p className="max-w-[600px] text-muted-foreground md:text-xl">
+                  <p className="max-w-[600px] text-muted-foreground text-body-lg">
                     The simple, smart, and secure way to manage your money. Track your spending, visualize your habits, and get AI-powered insights to save more.
                   </p>
                 </div>
@@ -54,8 +54,8 @@ export default function Home() {
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Key Features</div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">Everything You Need to Succeed</h2>
-                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                <h2 className="text-h2 sm:text-h1 font-semibold tracking-tight">Everything You Need to Succeed</h2>
+                <p className="max-w-[900px] text-muted-foreground text-body lg:text-body-lg">
                   Budget Buddy is packed with features designed to help you understand your money and achieve your financial goals.
                 </p>
               </div>
@@ -63,35 +63,35 @@ export default function Home() {
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:max-w-none mt-12">
               <Card>
                 <CardHeader className="flex flex-row items-center gap-4">
-                  <div className="bg-accent/10 p-3 rounded-full">
-                    <DollarSign className="h-6 w-6 text-accent" />
+                  <div className="bg-primary/10 p-3 rounded-full">
+                    <DollarSign className="h-6 w-6 text-primary" />
                   </div>
                   <CardTitle>Easy Transaction Entry</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">Quickly log your income and expenses. A clean interface makes tracking effortless.</p>
+                  <p className="text-body-sm text-muted-foreground">Quickly log your income and expenses. A clean interface makes tracking effortless.</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center gap-4">
-                  <div className="bg-accent/10 p-3 rounded-full">
-                    <BarChart className="h-6 w-6 text-accent" />
+                  <div className="bg-primary/10 p-3 rounded-full">
+                    <BarChart className="h-6 w-6 text-primary" />
                   </div>
                   <CardTitle>Spending Visualization</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">See where your money goes with simple, beautiful charts. Understand your habits at a glance.</p>
+                  <p className="text-body-sm text-muted-foreground">See where your money goes with simple, beautiful charts. Understand your habits at a glance.</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center gap-4">
-                  <div className="bg-accent/10 p-3 rounded-full">
-                    <Zap className="h-6 w-6 text-accent" />
+                  <div className="bg-primary/10 p-3 rounded-full">
+                    <Zap className="h-6 w-6 text-primary" />
                   </div>
                   <CardTitle>Smart Suggestions</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">Get personalized, AI-driven tips to cut costs and boost your savings.</p>
+                  <p className="text-body-sm text-muted-foreground">Get personalized, AI-driven tips to cut costs and boost your savings.</p>
                 </CardContent>
               </Card>
             </div>
