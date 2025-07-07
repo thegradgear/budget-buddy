@@ -9,6 +9,7 @@ import SmartSuggestions from '@/components/dashboard/SmartSuggestions';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import TransactionModal from '@/components/dashboard/TransactionModal';
+import { useAuth } from '@/lib/auth';
 
 const mockTransactions: Transaction[] = [
     { id: '1', type: 'income', amount: 2000, description: 'Salary', date: new Date('2024-07-15') },
@@ -20,6 +21,7 @@ const mockTransactions: Transaction[] = [
 ];
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
@@ -50,7 +52,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
+        <h1 className="text-3xl font-bold font-headline">Welcome, {user?.displayName?.split(' ')[0] || 'Buddy'}!</h1>
         <Button onClick={openAddModal}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Add Transaction
