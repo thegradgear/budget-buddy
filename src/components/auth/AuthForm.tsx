@@ -8,6 +8,8 @@ import * as z from 'zod';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendEmailVerification,
+  signOut,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -70,16 +72,34 @@ export function AuthForm({ mode }: AuthFormProps) {
     }
     try {
       if (mode === 'signup') {
-        await createUserWithEmailAndPassword(
+        const userCredential = await createUserWithEmailAndPassword(
           auth,
           values.email,
           values.password
         );
+        await sendEmailVerification(userCredential.user);
+        await signOut(auth);
+        toast({
+          title: 'Verification Email Sent',
+          description: 'Please check your inbox and verify your email to log in.',
+        });
+        router.push('/login');
       } else {
-        await signInWithEmailAndPassword(auth, values.email, values.password);
+        const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+        if (userCredential.user && userCredential.user.emailVerified) {
+            router.push('/dashboard');
+            router.refresh();
+        } else {
+            if (auth) {
+              await signOut(auth);
+            }
+            toast({
+                title: 'Email Not Verified',
+                description: 'Please check your email and click the verification link before logging in.',
+                variant: 'destructive',
+            });
+        }
       }
-      router.push('/dashboard');
-      router.refresh();
     } catch (error: any) {
       toast({
         title: 'Authentication Error',
