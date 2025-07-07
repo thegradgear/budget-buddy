@@ -107,7 +107,7 @@ export default function Home() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-accent/10 text-accent-foreground px-3 py-1 text-sm font-medium">How It Works</div>
+                <div className="inline-block rounded-lg bg-primary/10 text-primary px-3 py-1 text-sm font-medium">How It Works</div>
                 <h2 className="text-h2 font-semibold tracking-tight">Get Started in 3 Easy Steps</h2>
                 <p className="max-w-[900px] text-muted-foreground text-body-lg">
                   Start managing your finances in minutes. It's that simple.
@@ -230,43 +230,43 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-navy text-primary-light">
+      <footer className="bg-navy text-primary-foreground">
         <div className="container mx-auto py-12 px-4 md:px-6">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
             <div className="flex flex-col gap-4">
               <Logo className="text-white" />
-              <p className="text-primary-light/70 text-sm">Your financial co-pilot.</p>
+              <p className="text-blue-200/70 text-sm">Your financial co-pilot.</p>
               <div className="flex gap-4">
-                <Link href="#" className="text-primary-light/70 hover:text-primary-light"><Twitter className="h-5 w-5" /></Link>
-                <Link href="#" className="text-primary-light/70 hover:text-primary-light"><Facebook className="h-5 w-5" /></Link>
-                <Link href="#" className="text-primary-light/70 hover:text-primary-light"><Linkedin className="h-5 w-5" /></Link>
+                <Link href="#" className="text-blue-200/70 hover:text-white"><Twitter className="h-5 w-5" /></Link>
+                <Link href="#" className="text-blue-200/70 hover:text-white"><Facebook className="h-5 w-5" /></Link>
+                <Link href="#" className="text-blue-200/70 hover:text-white"><Linkedin className="h-5 w-5" /></Link>
               </div>
             </div>
             <div>
               <h4 className="font-semibold text-white mb-4">Product</h4>
               <ul className="space-y-2">
-                <li><Link href="#features" className="text-primary-light/70 hover:text-primary-light text-sm">Features</Link></li>
-                <li><Link href="#" className="text-primary-light/70 hover:text-primary-light text-sm">Pricing</Link></li>
-                <li><Link href="#" className="text-primary-light/70 hover:text-primary-light text-sm">Integrations</Link></li>
+                <li><Link href="#features" className="text-blue-200/70 hover:text-white text-sm">Features</Link></li>
+                <li><Link href="#" className="text-blue-200/70 hover:text-white text-sm">Pricing</Link></li>
+                <li><Link href="#" className="text-blue-200/70 hover:text-white text-sm">Integrations</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold text-white mb-4">Company</h4>
               <ul className="space-y-2">
-                <li><Link href="#" className="text-primary-light/70 hover:text-primary-light text-sm">About Us</Link></li>
-                <li><Link href="#" className="text-primary-light/70 hover:text-primary-light text-sm">Careers</Link></li>
-                <li><Link href="#" className="text-primary-light/70 hover:text-primary-light text-sm">Contact</Link></li>
+                <li><Link href="#" className="text-blue-200/70 hover:text-white text-sm">About Us</Link></li>
+                <li><Link href="#" className="text-blue-200/70 hover:text-white text-sm">Careers</Link></li>
+                <li><Link href="#" className="text-blue-200/70 hover:text-white text-sm">Contact</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold text-white mb-4">Legal</h4>
               <ul className="space-y-2">
-                <li><Link href="#" className="text-primary-light/70 hover:text-primary-light text-sm">Privacy Policy</Link></li>
-                <li><Link href="#" className="text-primary-light/70 hover:text-primary-light text-sm">Terms of Service</Link></li>
+                <li><Link href="#" className="text-blue-200/70 hover:text-white text-sm">Privacy Policy</Link></li>
+                <li><Link href="#" className="text-blue-200/70 hover:text-white text-sm">Terms of Service</Link></li>
               </ul>
             </div>
           </div>
-          <div className="mt-8 border-t border-border/20 pt-8 text-center text-sm text-primary-light/70">
+          <div className="mt-8 border-t border-slate-200/20 pt-8 text-center text-sm text-blue-200/70">
             &copy; {new Date().getFullYear()} Budget Buddy. All rights reserved.
           </div>
         </div>
