@@ -5,7 +5,7 @@ import { AuthProvider } from '@/lib/auth';
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: 'Fiscal Flow',
+  title: 'Budget Buddy',
   description: 'Manage your income and expenses with ease.',
 };
 

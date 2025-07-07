@@ -1,4 +1,4 @@
-# Firebase Studio
+# Budget Buddy
 
 This is a NextJS starter in Firebase Studio.
 

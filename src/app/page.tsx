@@ -26,7 +26,7 @@ export default function Home() {
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
-                    Take Control of Your Finances with Fiscal Flow
+                    Take Control of Your Finances with Budget Buddy
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
                     The simple, smart, and secure way to manage your money. Track your spending, visualize your habits, and get AI-powered insights to save more.
@@ -56,7 +56,7 @@ export default function Home() {
                 <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Key Features</div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">Everything You Need to Succeed</h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Fiscal Flow is packed with features designed to help you understand your money and achieve your financial goals.
+                  Budget Buddy is packed with features designed to help you understand your money and achieve your financial goals.
                 </p>
               </div>
             </div>
@@ -99,7 +99,7 @@ export default function Home() {
         </section>
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; 2024 Fiscal Flow. All rights reserved.</p>
+        <p className="text-xs text-muted-foreground">&copy; 2024 Budget Buddy. All rights reserved.</p>
       </footer>
     </div>
   );

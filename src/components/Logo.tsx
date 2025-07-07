@@ -10,7 +10,7 @@ export function Logo({ className }: LogoProps) {
   return (
     <Link href="/" className={cn("flex items-center gap-2 text-xl font-bold text-primary", className)}>
       <Wallet className="h-6 w-6" />
-      <span className="font-headline">Fiscal Flow</span>
+      <span className="font-headline">Budget Buddy</span>
     </Link>
   );
 }
