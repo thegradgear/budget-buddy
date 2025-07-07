@@ -11,6 +11,7 @@ import {
   sendEmailVerification,
   signOut,
   updateProfile,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -39,9 +40,7 @@ import { Logo } from '@/components/Logo';
 // Schema for login
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
-  password: z
-    .string()
-    .min(1, { message: 'Password is required.' }),
+  password: z.string().min(1, { message: 'Password is required.' }),
 });
 
 // Schema for signup with strong password requirements
@@ -65,6 +64,11 @@ const signupSchema = z.object({
     }),
 });
 
+// Schema for forgot password
+const forgotPasswordSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email.' }),
+});
+
 type AuthFormProps = {
   mode: 'login' | 'signup';
 };
@@ -74,20 +78,34 @@ export function AuthForm({ mode }: AuthFormProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [view, setView] = useState<'login' | 'signup' | 'forgotPassword'>(mode);
 
-  const formSchema = mode === 'signup' ? signupSchema : loginSchema;
+  const formSchema =
+    view === 'signup'
+      ? signupSchema
+      : view === 'forgotPassword'
+      ? forgotPasswordSchema
+      : loginSchema;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues:
-      mode === 'signup'
+      view === 'signup'
         ? { name: '', email: '', password: '' }
         : { email: '', password: '' },
   });
 
   useEffect(() => {
-    form.reset();
-  }, [mode, form]);
+    setView(mode);
+  }, [mode]);
+
+  useEffect(() => {
+    form.reset(
+      view === 'signup'
+        ? { name: '', email: '', password: '' }
+        : { email: '', password: '' }
+    );
+  }, [view, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
@@ -101,7 +119,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       return;
     }
     try {
-      if (mode === 'signup') {
+      if (view === 'signup') {
         const signupValues = values as z.infer<typeof signupSchema>;
         const userCredential = await createUserWithEmailAndPassword(
           auth,
@@ -115,10 +133,11 @@ export function AuthForm({ mode }: AuthFormProps) {
         await signOut(auth);
         toast({
           title: 'Verification Email Sent',
-          description: 'Please check your inbox and verify your email to log in.',
+          description:
+            'Please check your inbox and verify your email to log in.',
         });
         router.push('/login');
-      } else {
+      } else if (view === 'login') {
         const loginValues = values as z.infer<typeof loginSchema>;
         const userCredential = await signInWithEmailAndPassword(
           auth,
@@ -134,10 +153,19 @@ export function AuthForm({ mode }: AuthFormProps) {
           }
           toast({
             title: 'Email Not Verified',
-            description: 'Please check your email and click the verification link.',
+            description:
+              'Please check your email and click the verification link.',
             variant: 'destructive',
           });
         }
+      } else if (view === 'forgotPassword') {
+        const { email } = values as z.infer<typeof forgotPasswordSchema>;
+        await sendPasswordResetEmail(auth, email);
+        toast({
+          title: 'Password Reset Email Sent',
+          description: 'Check your inbox for a link to reset your password.',
+        });
+        setView('login');
       }
     } catch (error: any) {
       toast({
@@ -150,25 +178,37 @@ export function AuthForm({ mode }: AuthFormProps) {
     }
   }
 
+  const titles = {
+    login: 'Welcome Back',
+    signup: 'Create an Account',
+    forgotPassword: 'Forgot Password',
+  };
+
+  const descriptions = {
+    login: 'Sign in to your account to continue.',
+    signup: 'Enter your details to create an account.',
+    forgotPassword: "Enter your email and we'll send you a reset link.",
+  };
+
+  const buttonTexts = {
+    login: 'Login',
+    signup: 'Sign Up',
+    forgotPassword: 'Send Reset Link',
+  };
+
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
         <div className="mb-4 flex justify-center">
           <Logo />
         </div>
-        <CardTitle className="text-2xl font-headline">
-          {mode === 'login' ? 'Welcome Back' : 'Create an Account'}
-        </CardTitle>
-        <CardDescription>
-          {mode === 'login'
-            ? 'Sign in to your account to continue.'
-            : 'Enter your details to create an account.'}
-        </CardDescription>
+        <CardTitle className="text-2xl font-headline">{titles[view]}</CardTitle>
+        <CardDescription>{descriptions[view]}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {mode === 'signup' && (
+            {view === 'signup' && (
               <FormField
                 control={form.control}
                 name="name"
@@ -204,63 +244,91 @@ export function AuthForm({ mode }: AuthFormProps) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="••••••••"
-                        {...field}
-                        autoComplete={
-                          mode === 'login'
-                            ? 'current-password'
-                            : 'new-password'
-                        }
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute inset-y-0 right-0 h-full px-3 text-muted-foreground hover:text-foreground"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                        <span className="sr-only">
-                          {showPassword ? 'Hide password' : 'Show password'}
-                        </span>
-                      </Button>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {view !== 'forgotPassword' && (
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="••••••••"
+                          {...field}
+                          autoComplete={
+                            view === 'login'
+                              ? 'current-password'
+                              : 'new-password'
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute inset-y-0 right-0 h-full px-3 text-muted-foreground hover:text-foreground"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">
+                            {showPassword ? 'Hide password' : 'Show password'}
+                          </span>
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {view === 'login' && (
+              <div className="text-right -mt-2">
+                <Button
+                  type="button"
+                  variant="link"
+                  className="p-0 h-auto text-sm"
+                  onClick={() => setView('forgotPassword')}
+                >
+                  Forgot password?
+                </Button>
+              </div>
+            )}
+
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {mode === 'login' ? 'Login' : 'Sign Up'}
+              {buttonTexts[view]}
             </Button>
           </form>
         </Form>
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">
-          {mode === 'login'
-            ? "Don't have an account? "
-            : 'Already have an account? '}
-          <Button variant="link" asChild className="p-0">
-            <Link href={mode === 'login' ? '/signup' : '/login'}>
-              {mode === 'login' ? 'Sign up' : 'Login'}
-            </Link>
-          </Button>
+          {view === 'login' && "Don't have an account? "}
+          {view === 'signup' && 'Already have an account? '}
+          {view === 'forgotPassword' && 'Remember your password? '}
+
+          {view === 'forgotPassword' ? (
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => setView('login')}
+              className="p-0"
+            >
+              Login
+            </Button>
+          ) : (
+            <Button variant="link" asChild className="p-0">
+              <Link href={view === 'login' ? '/signup' : '/login'}>
+                {view === 'login' ? 'Sign up' : 'Login'}
+              </Link>
+            </Button>
+          )}
         </p>
       </CardFooter>
     </Card>
