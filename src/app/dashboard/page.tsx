@@ -1,3 +1,4 @@
+// src/app/dashboard/page.tsx
 'use client';
 
 import { useState } from 'react';
@@ -50,32 +51,41 @@ export default function DashboardPage() {
   }
   
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-h2 font-semibold">Welcome, {user?.displayName?.split(' ')[0] || 'Buddy'}!</h1>
-        <Button onClick={openAddModal} className="w-full sm:w-auto">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+      {/* Header Section - Responsive flex layout */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold">
+          Welcome, {user?.displayName?.split(' ')[0] || 'Buddy'}!
+        </h1>
+        <Button onClick={openAddModal} className="w-full sm:w-auto sm:min-w-[160px]">
           <PlusCircle className="mr-2 h-4 w-4" />
           Add Transaction
         </Button>
       </div>
 
+      {/* Account Overview - Full width on all screens */}
       <AccountOverview transactions={transactions} />
 
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-7">
-        <div className="lg:col-span-4">
+      {/* Chart and Suggestions Grid - Responsive layout */}
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8 xl:grid-cols-3">
+        {/* Spending Chart - Takes full width on mobile, 2/3 on xl screens */}
+        <div className="xl:col-span-2">
           <SpendingChart transactions={transactions} />
         </div>
-        <div className="lg:col-span-3">
+        {/* Smart Suggestions - Full width on mobile, 1/3 on xl screens */}
+        <div className="xl:col-span-1">
           <SmartSuggestions transactions={transactions} />
         </div>
       </div>
       
+      {/* Transaction List - Full width, responsive internally */}
       <TransactionList 
         transactions={transactions} 
         onEdit={openEditModal}
         onDelete={handleDeleteTransaction}
       />
 
+      {/* Modal - Responsive by default */}
       <TransactionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

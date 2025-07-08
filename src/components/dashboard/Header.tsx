@@ -1,3 +1,4 @@
+// src/components/dashboard/Header.tsx
 'use client';
 
 import { useAuth } from '@/lib/auth';
@@ -36,16 +37,23 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center px-6 sm:px-10 lg:px-12">
-        <Logo />
-        <div className="ml-auto">
+      <div className="w-full max-w-7xl mx-auto flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12">
+        {/* Logo - Responsive sizing */}
+        <div className="flex-shrink-0">
+          <Logo />
+        </div>
+        
+        {/* User Menu - Responsive */}
+        <div className="flex items-center">
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
+                <Button variant="ghost" className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full">
+                  <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                     <AvatarImage src={user.photoURL ?? ''} alt="User avatar" />
-                    <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
+                    <AvatarFallback className="text-xs sm:text-sm">
+                      {getInitials(user.email)}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
@@ -53,7 +61,7 @@ export default function Header() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">My Account</p>
-                    <p className="text-xs leading-none text-muted-foreground">
+                    <p className="text-xs leading-none text-muted-foreground truncate">
                       {user.email}
                     </p>
                   </div>

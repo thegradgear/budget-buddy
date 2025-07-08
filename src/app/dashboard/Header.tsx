@@ -1,3 +1,4 @@
+// src/app/dashboard/Header.tsx
 'use client';
 
 import { useAuth } from '@/lib/auth';
