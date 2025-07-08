@@ -7,7 +7,7 @@ import { collection, query, onSnapshot, orderBy, doc, updateDoc, Timestamp } fro
 import type { Notification } from '@/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Bell, CheckCheck } from 'lucide-react';
+import { Bell, CheckCheck, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
@@ -56,10 +56,6 @@ export default function NotificationBell() {
     
     const handleOpenChange = (open: boolean) => {
         setIsOpen(open);
-        if(open && unreadCount > 0) {
-            // Optional: Mark as read on open
-            // handleMarkAllAsRead();
-        }
     }
 
     return (
@@ -90,11 +86,15 @@ export default function NotificationBell() {
                             {notifications.length > 0 ? (
                                 <div className="divide-y">
                                 {notifications.map(notif => (
-                                    <div key={notif.id} className={cn("p-4", !notif.read && "bg-blue-500/5")}>
-                                        <div className="flex items-start gap-3">
-                                            {!notif.read && <div className="mt-1.5 h-2 w-2 rounded-full shrink-0 bg-primary"></div>}
+                                    <div key={notif.id} className={cn("p-4", !notif.read && "bg-secondary")}>
+                                        <div className="flex items-start gap-4">
+                                            <div className="w-5 h-5 shrink-0 mt-0.5 flex items-center justify-center">
+                                                {notif.type === 'danger' && <AlertCircle className="h-5 w-5 text-destructive" />}
+                                                {notif.type === 'warning' && <AlertTriangle className="h-5 w-5 text-amber-500" />}
+                                                {!notif.type && !notif.read && <div className="h-2 w-2 rounded-full shrink-0 bg-primary"></div>}
+                                            </div>
                                             <div className="flex-1">
-                                                <p className={cn("text-sm", !notif.read && "font-semibold")}>{notif.message}</p>
+                                                <p className={cn("text-sm leading-tight", !notif.read && "font-semibold")}>{notif.message}</p>
                                                 <p className="text-xs text-muted-foreground mt-1">
                                                     {formatDistanceToNow(notif.createdAt, { addSuffix: true })}
                                                 </p>
