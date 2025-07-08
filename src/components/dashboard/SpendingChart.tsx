@@ -28,6 +28,10 @@ const chartConfig = {
       label: "Expenses",
       color: "hsl(var(--destructive))",
     },
+    income: {
+        label: "Income",
+        color: "hsl(var(--chart-1))",
+    }
 } satisfies ChartConfig
 
 export default function SpendingChart({ transactions }: Props) {
@@ -35,6 +39,7 @@ export default function SpendingChart({ transactions }: Props) {
 
   const data = useMemo(() => {
     const expenses = transactions.filter((t) => t.type === 'expense');
+    const income = transactions.filter((t) => t.type === 'income');
     const now = new Date();
 
     if (dateRange === '7d') {
@@ -44,6 +49,9 @@ export default function SpendingChart({ transactions }: Props) {
         expenses: expenses
           .filter(e => startOfDay(new Date(e.date)).getTime() === startOfDay(day).getTime())
           .reduce((sum, e) => sum + e.amount, 0),
+        income: income
+            .filter(i => startOfDay(new Date(i.date)).getTime() === startOfDay(day).getTime())
+            .reduce((sum, i) => sum + i.amount, 0),
       }));
     }
 
@@ -54,6 +62,9 @@ export default function SpendingChart({ transactions }: Props) {
             expenses: expenses
                 .filter(e => startOfDay(new Date(e.date)).getTime() === startOfDay(day).getTime())
                 .reduce((sum, e) => sum + e.amount, 0),
+            income: income
+                .filter(i => startOfDay(new Date(i.date)).getTime() === startOfDay(day).getTime())
+                .reduce((sum, i) => sum + i.amount, 0),
         }));
     }
 
@@ -69,13 +80,19 @@ export default function SpendingChart({ transactions }: Props) {
               return eDate >= weekStart && eDate <= weekEnd;
             })
             .reduce((sum, e) => sum + e.amount, 0),
+          income: income
+            .filter(i => {
+                const iDate = startOfDay(new Date(i.date));
+                return iDate >= weekStart && iDate <= weekEnd;
+            })
+            .reduce((sum, i) => sum + i.amount, 0),
         };
       });
     }
     
     if (dateRange === 'all') {
-        if (expenses.length === 0) return [];
-        const firstTransactionDate = expenses.reduce((oldest, t) => new Date(t.date) < oldest ? new Date(t.date) : oldest, new Date());
+        if (transactions.length === 0) return [];
+        const firstTransactionDate = transactions.reduce((oldest, t) => new Date(t.date) < oldest ? new Date(t.date) : oldest, new Date());
         const months = eachMonthOfInterval({ start: firstTransactionDate, end: now });
         return months.map(monthStart => {
             const monthEnd = endOfMonth(monthStart);
@@ -87,6 +104,12 @@ export default function SpendingChart({ transactions }: Props) {
                         return eDate >= monthStart && eDate <= monthEnd;
                     })
                     .reduce((sum, e) => sum + e.amount, 0),
+                income: income
+                    .filter(i => {
+                        const iDate = new Date(i.date);
+                        return iDate >= monthStart && iDate <= monthEnd;
+                    })
+                    .reduce((sum, i) => sum + i.amount, 0),
             };
         });
     }
@@ -105,8 +128,8 @@ export default function SpendingChart({ transactions }: Props) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Spending: {titles[dateRange]}</CardTitle>
-          <CardDescription>A visual summary of your expenses.</CardDescription>
+          <CardTitle>Income vs. Expense: {titles[dateRange]}</CardTitle>
+          <CardDescription>A summary of your income and expenses.</CardDescription>
         </div>
         <Select value={dateRange} onValueChange={(value) => setDateRange(value as DateRange)}>
             <SelectTrigger className="w-[180px]">
@@ -121,7 +144,7 @@ export default function SpendingChart({ transactions }: Props) {
         </Select>
       </CardHeader>
       <CardContent>
-        {data.length > 0 && data.some(d => d.expenses > 0) ? (
+        {data.length > 0 && data.some(d => d.expenses > 0 || d.income > 0) ? (
             <ChartContainer config={chartConfig} className="h-[250px] w-full">
                 <BarChart data={data} accessibilityLayer margin={{ top: 20, right: 20, left: -10, bottom: 0 }}>
                     <CartesianGrid vertical={false} />
@@ -143,12 +166,13 @@ export default function SpendingChart({ transactions }: Props) {
                         cursor={false}
                         content={<ChartTooltipContent indicator="dot" />}
                     />
+                    <Bar dataKey="income" fill="var(--color-income)" radius={4} />
                     <Bar dataKey="expenses" fill="var(--color-expenses)" radius={4} />
                 </BarChart>
             </ChartContainer>
         ) : (
             <div className="flex h-[250px] items-center justify-center text-muted-foreground">
-                No expense data for this period.
+                No data for this period.
             </div>
         )}
       </CardContent>
