@@ -41,6 +41,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
+    const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
     const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'amount'; direction: 'asc' | 'desc' }>({ key: 'date', direction: 'desc' });
 
     const uniqueCategories = useMemo(() => {
@@ -63,6 +64,11 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
             processedTransactions = processedTransactions.filter(t => t.category === categoryFilter);
         }
         
+        // Filter by type
+        if (typeFilter !== 'all') {
+            processedTransactions = processedTransactions.filter(t => t.type === typeFilter);
+        }
+
         // Sort
         processedTransactions.sort((a, b) => {
             if (sortConfig.key === 'date') {
@@ -75,7 +81,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
         });
 
         return processedTransactions;
-    }, [transactions, searchQuery, categoryFilter, sortConfig]);
+    }, [transactions, searchQuery, categoryFilter, typeFilter, sortConfig]);
 
     const totalPages = Math.ceil(filteredAndSortedTransactions.length / TRANSACTIONS_PER_PAGE);
 
@@ -87,7 +93,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
     useEffect(() => {
         // Reset to first page if filters change
         setCurrentPage(1);
-    }, [searchQuery, categoryFilter, sortConfig]);
+    }, [searchQuery, categoryFilter, typeFilter, sortConfig]);
     
     useEffect(() => {
         if (paginatedTransactions.length === 0 && currentPage > 1) {
@@ -127,7 +133,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
         <CardDescription>Search, filter, and sort all your income and expenses.</CardDescription>
       </CardHeader>
       
-      <div className="flex flex-col md:flex-row gap-2 items-center px-4 md:px-6 pb-4 border-b">
+      <div className="flex flex-col md:flex-row gap-4 items-center px-4 md:px-6 pb-4 border-b">
         <div className="w-full md:w-auto md:flex-1">
             <Input
                 placeholder="Search descriptions..."
@@ -136,9 +142,19 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
                 className="w-full md:max-w-sm"
             />
         </div>
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as 'all' | 'income' | 'expense')}>
+                <SelectTrigger className="w-full sm:w-[130px]">
+                    <SelectValue placeholder="Filter by type" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="income">Income</SelectItem>
+                    <SelectItem value="expense">Expense</SelectItem>
+                </SelectContent>
+            </Select>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full md:w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -148,7 +164,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
             </Select>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full md:w-auto justify-start">
+                    <Button variant="outline" className="w-full sm:w-auto justify-start">
                     <ArrowUpDown className="mr-2 h-4 w-4" />
                     <span className="truncate">{getSortLabel()}</span>
                     </Button>
@@ -183,7 +199,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
                     <TableRow key={t.id}>
                     <TableCell className="font-medium">{t.description}</TableCell>
                     <TableCell>
-                        <span className={cn('px-2.5 py-0.5 text-xs font-semibold rounded-full', {
+                        <span className={cn('px-2.5 py-0.5 text-xs font-semibold rounded-full capitalize', {
                             'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300': t.type === 'income',
                             'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300': t.type === 'expense',
                         })}>
