@@ -9,8 +9,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="px-6 md:px-10 h-16 flex items-center border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10">
-        <div className="container flex items-center w-full">
+      <header className="h-16 flex items-center border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+        <div className="container flex items-center w-full px-6 md:px-10">
           <Logo />
           <nav className="ml-auto flex gap-2 sm:gap-6">
             <Button variant="ghost" asChild>
@@ -116,7 +116,7 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl grid-cols-1 items-start gap-12 py-12 lg:grid-cols-3 lg:gap-12">
+            <div className="mx-auto grid grid-cols-1 items-start gap-12 py-12 lg:grid-cols-3 lg:gap-12">
               <div className="grid gap-2 text-center">
                 <div className="flex items-center justify-center">
                   <div className="flex items-center justify-center rounded-full bg-primary-light p-4 ring-8 ring-primary-light/30">
