@@ -11,7 +11,6 @@ import {
   query,
   orderBy,
   onSnapshot,
-  addDoc,
   updateDoc,
   deleteDoc,
   Timestamp,
@@ -27,6 +26,7 @@ import SmartSuggestions from '@/components/dashboard/SmartSuggestions';
 import TransactionList from '@/components/dashboard/TransactionList';
 import TransactionModal from '@/components/dashboard/TransactionModal';
 import { categorizeTransaction } from '@/ai/flows/categorize-transaction';
+import Link from 'next/link';
 
 export default function AccountDetailsPage() {
   const { user } = useAuth();
@@ -84,25 +84,6 @@ export default function AccountDetailsPage() {
     };
   }, [user, db, accountId, router, toast]);
 
-  const handleAddTransaction = async (transaction: Omit<Transaction, 'id'>) => {
-    if (!user || !db || !accountId) return;
-    try {
-      const { category } = await categorizeTransaction({
-        description: transaction.description,
-        type: transaction.type,
-      });
-
-      await addDoc(collection(db, 'users', user.uid, 'accounts', accountId, 'transactions'), {
-        ...transaction,
-        category,
-        date: Timestamp.fromDate(transaction.date)
-      });
-    } catch (error) {
-      console.error("Error adding transaction: ", error);
-      toast({ title: "Error", description: "Could not add transaction.", variant: "destructive" });
-    }
-  };
-
   const handleUpdateTransaction = async (updatedTransaction: Transaction) => {
     if (!user || !db || !accountId) return;
     const { id, ...data } = updatedTransaction;
@@ -138,11 +119,6 @@ export default function AccountDetailsPage() {
     setIsTransactionModalOpen(true);
   }
 
-  const openAddModal = () => {
-    setEditingTransaction(null);
-    setIsTransactionModalOpen(true);
-  }
-
   if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
@@ -159,9 +135,11 @@ export default function AccountDetailsPage() {
           Back to Dashboard
         </Button>
         <h1 className="text-2xl font-bold">{account?.name} Details</h1>
-        <Button onClick={openAddModal}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add Transaction
+        <Button asChild>
+          <Link href={`/dashboard/accounts/${accountId}/new-transaction`}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Transaction
+          </Link>
         </Button>
       </div>
       
@@ -185,13 +163,7 @@ export default function AccountDetailsPage() {
       <TransactionModal
         isOpen={isTransactionModalOpen}
         onClose={() => setIsTransactionModalOpen(false)}
-        onSave={async (t) => {
-          if ('id' in t && t.id) {
-            await handleUpdateTransaction(t as Transaction);
-          } else {
-            await handleAddTransaction(t as Omit<Transaction, 'id'>);
-          }
-        }}
+        onSave={handleUpdateTransaction}
         transaction={editingTransaction}
       />
     </div>

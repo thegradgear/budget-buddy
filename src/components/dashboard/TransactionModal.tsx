@@ -43,7 +43,7 @@ import { useEffect } from 'react';
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (transaction: Omit<Transaction, 'id'> | Transaction) => void;
+  onSave: (transaction: Transaction) => void;
   transaction: Transaction | null;
 };
 
@@ -60,31 +60,20 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
   });
 
   useEffect(() => {
-    if (isOpen) {
-      if (transaction) {
+    if (isOpen && transaction) {
         form.reset({
           description: transaction.description,
           amount: transaction.amount,
           type: transaction.type,
           date: new Date(transaction.date),
         });
-      } else {
-        form.reset({
-          description: '',
-          amount: undefined,
-          type: 'expense',
-          date: new Date(),
-        });
-      }
     }
   }, [transaction, form, isOpen]);
 
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (transaction) {
-        onSave({ ...values, id: transaction.id });
-    } else {
-        onSave(values);
+        onSave({ ...values, id: transaction.id, category: transaction.category });
     }
     onClose();
   };
@@ -93,7 +82,7 @@ export default function TransactionModal({ isOpen, onClose, onSave, transaction 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{transaction ? 'Edit' : 'Add'} Transaction</DialogTitle>
+          <DialogTitle>Edit Transaction</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
