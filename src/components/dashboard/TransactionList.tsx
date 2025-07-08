@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Transaction } from '@/types';
 import {
   Table,
@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MoreVertical, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MoreVertical, Pencil, Trash2, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import {
     DropdownMenu,
@@ -20,6 +20,14 @@ import {
   } from "@/components/ui/dropdown-menu"
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type Props = {
   transactions: Transaction[];
@@ -31,19 +39,61 @@ const TRANSACTIONS_PER_PAGE = 10;
 
 export default function TransactionList({ transactions, onEdit, onDelete }: Props) {
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'amount'; direction: 'asc' | 'desc' }>({ key: 'date', direction: 'desc' });
 
-    const totalPages = Math.ceil(transactions.length / TRANSACTIONS_PER_PAGE);
+    const uniqueCategories = useMemo(() => {
+        const categories = new Set(transactions.map(t => t.category).filter(Boolean) as string[]);
+        return Array.from(categories).sort();
+    }, [transactions]);
+    
+    const filteredAndSortedTransactions = useMemo(() => {
+        let processedTransactions = [...transactions];
 
-    const paginatedTransactions = transactions.slice(
+        // Filter by search query
+        if (searchQuery) {
+            processedTransactions = processedTransactions.filter(t =>
+                t.description.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
+        // Filter by category
+        if (categoryFilter !== 'all') {
+            processedTransactions = processedTransactions.filter(t => t.category === categoryFilter);
+        }
+        
+        // Sort
+        processedTransactions.sort((a, b) => {
+            if (sortConfig.key === 'date') {
+                const dateA = new Date(a.date).getTime();
+                const dateB = new Date(b.date).getTime();
+                return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+            } else { // sort by amount
+                return sortConfig.direction === 'asc' ? a.amount - b.amount : b.amount - a.amount;
+            }
+        });
+
+        return processedTransactions;
+    }, [transactions, searchQuery, categoryFilter, sortConfig]);
+
+    const totalPages = Math.ceil(filteredAndSortedTransactions.length / TRANSACTIONS_PER_PAGE);
+
+    const paginatedTransactions = filteredAndSortedTransactions.slice(
         (currentPage - 1) * TRANSACTIONS_PER_PAGE,
         currentPage * TRANSACTIONS_PER_PAGE
     );
     
     useEffect(() => {
+        // Reset to first page if filters change
+        setCurrentPage(1);
+    }, [searchQuery, categoryFilter, sortConfig]);
+    
+    useEffect(() => {
         if (paginatedTransactions.length === 0 && currentPage > 1) {
             setCurrentPage(currentPage - 1);
         }
-    }, [paginatedTransactions.length, currentPage]);
+    }, [paginatedTransactions.length, currentPage, filteredAndSortedTransactions]);
 
     const handlePrevPage = () => {
         setCurrentPage((prev) => Math.max(prev - 1, 1));
@@ -60,13 +110,60 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
         }).format(amount);
     };
 
+    const getSortLabel = () => {
+        const labels: { [key: string]: string } = {
+            date_desc: 'Date: Newest',
+            date_asc: 'Date: Oldest',
+            amount_desc: 'Amount: High to Low',
+            amount_asc: 'Amount: Low to High',
+        };
+        return labels[`${sortConfig.key}_${sortConfig.direction}`] || 'Sort by';
+    }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Transaction Log</CardTitle>
-        <CardDescription>A list of all your recent income and expenses.</CardDescription>
+        <CardDescription>Search, filter, and sort all your income and expenses.</CardDescription>
       </CardHeader>
-      <CardContent>
+      
+      <div className="flex flex-col md:flex-row gap-2 items-center px-4 md:px-6 pb-4 border-b">
+        <div className="w-full md:w-auto md:flex-1">
+            <Input
+                placeholder="Search descriptions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full md:max-w-sm"
+            />
+        </div>
+        <div className="flex gap-2 w-full md:w-auto">
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full md:w-[180px]">
+                <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {uniqueCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                </SelectContent>
+            </Select>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full md:w-auto justify-start">
+                    <ArrowUpDown className="mr-2 h-4 w-4" />
+                    <span className="truncate">{getSortLabel()}</span>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setSortConfig({ key: 'date', direction: 'desc' })}>Date: Newest</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortConfig({ key: 'date', direction: 'asc' })}>Date: Oldest</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortConfig({ key: 'amount', direction: 'desc' })}>Amount: High to Low</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortConfig({ key: 'amount', direction: 'asc' })}>Amount: Low to High</DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+      </div>
+
+      <CardContent className="p-0">
         {/* Desktop View */}
         <div className='hidden md:block'>
             <Table>
@@ -81,7 +178,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {transactions.length > 0 ? (
+                {paginatedTransactions.length > 0 ? (
                 paginatedTransactions.map((t) => (
                     <TableRow key={t.id}>
                     <TableCell className="font-medium">{t.description}</TableCell>
@@ -125,7 +222,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
                 ))
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={6} className="text-center h-24">No transactions yet.</TableCell>
+                        <TableCell colSpan={6} className="text-center h-24">No transactions found.</TableCell>
                     </TableRow>
                 )}
             </TableBody>
@@ -133,9 +230,9 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
         </div>
 
         {/* Mobile View */}
-        <div className="md:hidden">
+        <div className="md:hidden p-4">
             <div className="space-y-4">
-                {transactions.length > 0 ? (
+                {paginatedTransactions.length > 0 ? (
                     paginatedTransactions.map((t) => (
                         <Card key={t.id} className="p-4 flex justify-between items-start">
                             <div className="flex-1 space-y-2">
@@ -181,12 +278,11 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
                     ))
                 ) : (
                     <div className="text-center h-24 flex items-center justify-center">
-                        <p>No transactions yet.</p>
+                        <p>No transactions found.</p>
                     </div>
                 )}
             </div>
         </div>
-
       </CardContent>
       {totalPages > 1 && (
         <CardFooter className="flex items-center justify-between border-t px-6 py-4">
