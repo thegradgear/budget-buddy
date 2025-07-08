@@ -13,7 +13,8 @@ import {
   updateProfile,
   sendPasswordResetEmail,
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -109,7 +110,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    if (!auth) {
+    if (!auth || !db) {
       toast({
         title: 'Configuration Error',
         description: 'Firebase is not configured. Please check your .env file.',
@@ -126,10 +127,22 @@ export function AuthForm({ mode }: AuthFormProps) {
           signupValues.email,
           signupValues.password
         );
-        await updateProfile(userCredential.user, {
+        const user = userCredential.user;
+        await updateProfile(user, {
           displayName: signupValues.name,
         });
-        await sendEmailVerification(userCredential.user);
+
+        // Add user to Firestore 'users' collection
+        if (user) {
+          await setDoc(doc(db, "users", user.uid), {
+            uid: user.uid,
+            name: signupValues.name,
+            email: user.email,
+            phone: ''
+          });
+        }
+        
+        await sendEmailVerification(user);
         await signOut(auth);
         toast({
           title: 'Verification Email Sent',
