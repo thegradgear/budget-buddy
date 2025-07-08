@@ -191,7 +191,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
 
       <CardContent className="p-0">
         {/* Desktop View */}
-        <div className='hidden md:block min-h-[620px]'>
+        <div className='hidden md:block min-h-[620px] px-6'>
             <Table>
             <TableHeader>
                 <TableRow>
@@ -256,7 +256,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
         </div>
 
         {/* Mobile View */}
-        <div className="md:hidden p-4 min-h-[500px] flex flex-col">
+        <div className="md:hidden p-6 min-h-[500px] flex flex-col">
             <div className="space-y-4 flex-grow">
                 {paginatedTransactions.length > 0 ? (
                     paginatedTransactions.map((t) => (
