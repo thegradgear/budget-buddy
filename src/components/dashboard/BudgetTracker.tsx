@@ -12,6 +12,7 @@ import { Loader2, Pencil, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { UserProfile } from '@/types';
+import { checkBudgetAndCreateNotifications } from '@/lib/notifications';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -99,6 +100,7 @@ export default function BudgetTracker() {
             setBudget(budgetValue);
             setIsEditing(false);
             toast({ title: "Success", description: "Your budget has been updated." });
+            await checkBudgetAndCreateNotifications(user.uid);
         } catch (error) {
             console.error("Error updating budget:", error);
             toast({ title: "Error", description: "Could not update your budget.", variant: "destructive" });

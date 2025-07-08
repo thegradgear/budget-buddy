@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
-import { collection, query, onSnapshot, orderBy, doc, updateDoc, Timestamp } from 'firebase/firestore';
-import type { Notification } from '@/types';
+import { collection, query, onSnapshot, orderBy, doc, updateDoc, Timestamp, getDoc, getDocs, where } from 'firebase/firestore';
+import type { Notification, UserProfile } from '@/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Bell, CheckCheck, AlertTriangle, AlertCircle } from 'lucide-react';
+import { Bell, BellRing, CheckCheck, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, startOfMonth, endOfMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../ui/scroll-area';
 
@@ -19,6 +19,7 @@ export default function NotificationBell() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
+    const [budgetStatus, setBudgetStatus] = useState<'ok' | 'warning' | 'danger'>('ok');
 
     useEffect(() => {
         if (!user || !db) return;
@@ -44,6 +45,67 @@ export default function NotificationBell() {
         return () => unsubscribe();
     }, [user, db]);
 
+    useEffect(() => {
+        if (!user || !db || !isOpen) return;
+
+        const checkBudgetStatus = async () => {
+            try {
+                const userDocRef = doc(db, 'users', user.uid);
+                const userDoc = await getDoc(userDocRef);
+                
+                if (!userDoc.exists()) {
+                    setBudgetStatus('ok');
+                    return;
+                }
+
+                const userData = userDoc.data() as UserProfile;
+                const { monthlyBudget } = userData;
+
+                if (!monthlyBudget || monthlyBudget <= 0) {
+                    setBudgetStatus('ok');
+                    return;
+                }
+                
+                const now = new Date();
+                const start = startOfMonth(now);
+                const end = endOfMonth(now);
+                let totalExpenses = 0;
+                
+                const accountsSnapshot = await getDocs(collection(db, 'users', user.uid, 'accounts'));
+
+                for (const accountDoc of accountsSnapshot.docs) {
+                    const transactionsQuery = query(
+                        collection(db, 'users', user.uid, 'accounts', accountDoc.id, 'transactions'),
+                        where('date', '>=', Timestamp.fromDate(start)),
+                        where('date', '<=', Timestamp.fromDate(end)),
+                        where('type', '==', 'expense')
+                    );
+                    
+                    const transactionsSnapshot = await getDocs(transactionsQuery);
+                    transactionsSnapshot.forEach(transactionDoc => {
+                        totalExpenses += transactionDoc.data().amount;
+                    });
+                }
+                
+                const spendingPercentage = (totalExpenses / monthlyBudget) * 100;
+                
+                if (spendingPercentage >= 100) {
+                    setBudgetStatus('danger');
+                } else if (spendingPercentage >= 90) {
+                    setBudgetStatus('warning');
+                } else {
+                    setBudgetStatus('ok');
+                }
+
+            } catch (error) {
+                console.error("Error checking budget status:", error);
+                setBudgetStatus('ok');
+            }
+        };
+
+        checkBudgetStatus();
+    }, [user, db, isOpen]);
+
     const handleMarkAllAsRead = async () => {
         if (!user || !db || unreadCount === 0) return;
         
@@ -57,12 +119,22 @@ export default function NotificationBell() {
     const handleOpenChange = (open: boolean) => {
         setIsOpen(open);
     }
+    
+    const BellIcon = () => {
+        if (budgetStatus === 'danger') {
+            return <BellRing className="h-5 w-5 text-destructive" />;
+        }
+        if (budgetStatus === 'warning') {
+            return <BellRing className="h-5 w-5 text-amber-500" />;
+        }
+        return <Bell className="h-5 w-5" />;
+    };
 
     return (
         <Popover open={isOpen} onOpenChange={handleOpenChange}>
             <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
-                    <Bell className="h-5 w-5" />
+                    <BellIcon />
                     {unreadCount > 0 && (
                         <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
                             {unreadCount}
