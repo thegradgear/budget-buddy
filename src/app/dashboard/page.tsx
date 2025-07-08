@@ -24,6 +24,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { categorizeTransaction } from '@/ai/flows/categorize-transaction';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -52,6 +53,7 @@ export default function DashboardPage() {
             amount: data.amount,
             description: data.description,
             date: (data.date as Timestamp).toDate(),
+            category: data.category,
           };
         });
         setTransactions(transactionsData);
@@ -74,8 +76,14 @@ export default function DashboardPage() {
   const handleAddTransaction = async (transaction: Omit<Transaction, 'id'>) => {
     if (!user || !db) return;
     try {
+      const { category } = await categorizeTransaction({
+        description: transaction.description,
+        type: transaction.type,
+      });
+
       await addDoc(collection(db, 'users', user.uid, 'transactions'), {
         ...transaction,
+        category,
         date: Timestamp.fromDate(transaction.date)
       });
     } catch (error) {
@@ -88,9 +96,14 @@ export default function DashboardPage() {
     if (!user || !db) return;
     const { id, ...data } = updatedTransaction;
     try {
+      const { category } = await categorizeTransaction({
+        description: data.description,
+        type: data.type,
+      });
       const docRef = doc(db, 'users', user.uid, 'transactions', id);
       await updateDoc(docRef, {
         ...data,
+        category,
         date: Timestamp.fromDate(data.date)
       });
     } catch (error) {

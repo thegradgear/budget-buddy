@@ -18,6 +18,7 @@ import {
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu"
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 type Props = {
   transactions: Transaction[];
@@ -47,6 +48,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
                 <TableRow>
                 <TableHead>Description</TableHead>
                 <TableHead>Type</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead className="w-[50px] text-right">Actions</TableHead>
@@ -65,6 +67,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
                             {t.type}
                         </span>
                     </TableCell>
+                    <TableCell>{t.category || '-'}</TableCell>
                     <TableCell>{format(new Date(t.date), 'MMM d, yyyy')}</TableCell>
                     <TableCell className={cn('text-right font-semibold', {
                         'text-emerald-600': t.type === 'income',
@@ -96,7 +99,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
                 ))
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={5} className="text-center h-24">No transactions yet.</TableCell>
+                        <TableCell colSpan={6} className="text-center h-24">No transactions yet.</TableCell>
                     </TableRow>
                 )}
             </TableBody>
@@ -108,16 +111,19 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
             <div className="space-y-4">
                 {transactions.length > 0 ? (
                     transactions.map((t) => (
-                        <Card key={t.id} className="p-4 flex justify-between items-center">
-                            <div className="flex-1 space-y-1">
+                        <Card key={t.id} className="p-4 flex justify-between items-start">
+                            <div className="flex-1 space-y-2">
                                 <p className="font-medium truncate">{t.description}</p>
-                                <p className="text-sm text-muted-foreground">{format(new Date(t.date), 'MMM d, yyyy')}</p>
-                                <span className={cn('px-2 py-0.5 text-xs font-semibold rounded-full capitalize', {
-                                    'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300': t.type === 'income',
-                                    'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300': t.type === 'expense',
-                                })}>
-                                    {t.type}
-                                </span>
+                                <div className='flex flex-wrap gap-2 items-center'>
+                                  <span className={cn('px-2 py-0.5 text-xs font-semibold rounded-full capitalize', {
+                                      'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300': t.type === 'income',
+                                      'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300': t.type === 'expense',
+                                  })}>
+                                      {t.type}
+                                  </span>
+                                  {t.category && <Badge variant="secondary" className="font-normal">{t.category}</Badge>}
+                                </div>
+                                <p className="text-sm text-muted-foreground pt-1">{format(new Date(t.date), 'MMM d, yyyy')}</p>
                             </div>
                             <div className="flex items-center gap-2">
                                 <p className={cn('font-semibold text-right', {
