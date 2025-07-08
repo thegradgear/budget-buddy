@@ -20,7 +20,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 const profileSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   phone: z.string().optional(),
-  monthlyBudget: z.coerce.number().min(0, "Budget must be a positive number.").optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -37,7 +36,6 @@ export default function ProfilePage() {
     defaultValues: {
       name: '',
       phone: '',
-      monthlyBudget: undefined,
     },
   });
 
@@ -57,13 +55,11 @@ export default function ProfilePage() {
           form.reset({
             name: userData.name || user.displayName || '',
             phone: userData.phone || '',
-            monthlyBudget: userData.monthlyBudget || undefined,
           });
         } else {
             form.reset({
                 name: user.displayName || '',
                 phone: '',
-                monthlyBudget: undefined,
             });
         }
         setFetching(false);
@@ -97,7 +93,6 @@ export default function ProfilePage() {
       await updateDoc(userDocRef, {
         name: data.name,
         phone: data.phone || '',
-        monthlyBudget: data.monthlyBudget || 0,
       });
 
       toast({
@@ -181,19 +176,6 @@ export default function ProfilePage() {
                     <FormLabel>Phone Number</FormLabel>
                     <FormControl>
                       <Input placeholder="Your phone number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="monthlyBudget"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Monthly Budget (INR)</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="100" placeholder="e.g., 50000" {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
