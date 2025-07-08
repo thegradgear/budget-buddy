@@ -11,6 +11,7 @@ export type Account = {
   id: string;
   name: string;
   type: 'Savings' | 'Checking' | 'Credit Card' | 'Cash';
+  isActive?: boolean;
 };
 
 export type Notification = {

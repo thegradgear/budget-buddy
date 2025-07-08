@@ -15,6 +15,9 @@ import {
   addDoc,
   Timestamp,
   getDocs,
+  doc,
+  updateDoc,
+  writeBatch,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -23,8 +26,6 @@ import CategoryPieChart from '@/components/dashboard/CategoryPieChart';
 import RecentTransactions from '@/components/dashboard/RecentTransactions';
 import { Card } from '@/components/ui/card';
 import BudgetTracker from '@/components/dashboard/BudgetTracker';
-
-const ACTIVE_ACCOUNT_STORAGE_KEY = 'fiscalFlowActiveAccountId';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -41,12 +42,6 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setCurrentDate(new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
-    
-    // On initial load, try to get the active account from localStorage
-    const storedAccountId = typeof window !== 'undefined' ? localStorage.getItem(ACTIVE_ACCOUNT_STORAGE_KEY) : null;
-    if (storedAccountId) {
-      setActiveAccountId(storedAccountId);
-    }
   }, []);
 
   // Fetch accounts and all their transactions
@@ -61,18 +56,24 @@ export default function DashboardPage() {
         setAccounts(accountsData);
 
         if (accountsData.length > 0) {
-            // Determine and persist active account
-            const storedAccountId = localStorage.getItem(ACTIVE_ACCOUNT_STORAGE_KEY);
-            let currentActiveId = accountsData.some(a => a.id === storedAccountId) ? storedAccountId : accountsData[0].id;
-            
-            // If activeAccountId from state is not in the new list, reset it.
-            if (!accountsData.some(a => a.id === activeAccountId)) {
-              currentActiveId = accountsData[0].id;
-            }
+            let activeAccount = accountsData.find(a => a.isActive);
 
-            if (activeAccountId !== currentActiveId) {
-                setActiveAccountId(currentActiveId);
-                localStorage.setItem(ACTIVE_ACCOUNT_STORAGE_KEY, currentActiveId!);
+            // Migration step for existing users: if no account is active, make the first one active.
+            if (!activeAccount) {
+                activeAccount = accountsData[0];
+                try {
+                  const accountRef = doc(db, 'users', user.uid, 'accounts', activeAccount.id);
+                  await updateDoc(accountRef, { isActive: true });
+                  // This will trigger a re-render with the correct active account.
+                  return;
+                } catch (error) {
+                  console.error("Error setting default active account:", error);
+                  toast({ title: "Error", description: "Could not set a default active account.", variant: "destructive" });
+                }
+            }
+            
+            if (activeAccount) {
+              setActiveAccountId(activeAccount.id);
             }
 
             // Fetch transactions for ALL accounts
@@ -99,7 +100,6 @@ export default function DashboardPage() {
         } else {
             setActiveAccountId(null);
             setAllTransactions(new Map());
-            localStorage.removeItem(ACTIVE_ACCOUNT_STORAGE_KEY);
         }
 
         setLoading(false);
@@ -128,10 +128,16 @@ export default function DashboardPage() {
   }, [activeAccountId, allTransactions]);
 
 
-  const handleSaveAccount = async (account: Omit<Account, 'id'>) => {
+  const handleSaveAccount = async (accountData: Omit<Account, 'id' | 'isActive'>) => {
     if (!user || !db) return;
     try {
-      await addDoc(collection(db, 'users', user.uid, 'accounts'), account);
+      const isFirstAccount = accounts.length === 0;
+      const newAccountData = {
+        ...accountData,
+        isActive: isFirstAccount,
+      };
+
+      await addDoc(collection(db, 'users', user.uid, 'accounts'), newAccountData);
       toast({ title: "Success", description: "Account created successfully." });
     } catch (error) {
       console.error("Error adding account: ", error);
@@ -139,9 +145,25 @@ export default function DashboardPage() {
     }
   };
 
-  const handleSetActiveAccount = (accountId: string) => {
-    setActiveAccountId(accountId);
-    localStorage.setItem(ACTIVE_ACCOUNT_STORAGE_KEY, accountId);
+  const handleSetActiveAccount = async (newActiveAccountId: string) => {
+    if (!user || !db || newActiveAccountId === activeAccountId) return;
+    
+    try {
+      const batch = writeBatch(db);
+      
+      if (activeAccountId) {
+        const oldAccountRef = doc(db, 'users', user.uid, 'accounts', activeAccountId);
+        batch.update(oldAccountRef, { isActive: false });
+      }
+
+      const newAccountRef = doc(db, 'users', user.uid, 'accounts', newActiveAccountId);
+      batch.update(newAccountRef, { isActive: true });
+
+      await batch.commit();
+    } catch (error) {
+      console.error("Error switching active account:", error);
+      toast({ title: "Error", description: "Could not switch active account.", variant: "destructive" });
+    }
   };
   
   if (loading) {
