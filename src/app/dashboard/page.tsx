@@ -22,6 +22,7 @@ import AccountCard from '@/components/dashboard/AccountCard';
 import CategoryPieChart from '@/components/dashboard/CategoryPieChart';
 import RecentTransactions from '@/components/dashboard/RecentTransactions';
 import { Card } from '@/components/ui/card';
+import BudgetTracker from '@/components/dashboard/BudgetTracker';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -172,6 +173,8 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold text-foreground">Welcome back, {user?.displayName || 'User'}!</h1>
         <p className="text-muted-foreground">{currentDate}</p>
       </div>
+
+      <BudgetTracker />
 
       {transactionsLoading ? (
          <div className="flex h-[50vh] items-center justify-center">
