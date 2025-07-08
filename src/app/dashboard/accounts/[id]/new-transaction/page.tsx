@@ -30,7 +30,7 @@ import { Loader2, CalendarIcon, ArrowLeft } from 'lucide-react';
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { categorizeTransaction } from '@/ai/flows/categorize-transaction';
-import type { Transaction } from '@/types';
+import { checkBudgetAndCreateNotifications } from '@/lib/notifications';
 
 const formSchema = z.object({
   description: z.string().min(1, 'Description is required'),
@@ -74,6 +74,11 @@ export default function NewTransactionPage() {
             date: Timestamp.fromDate(values.date)
           });
           toast({ title: 'Success', description: 'Transaction added successfully.' });
+          
+          if (values.type === 'expense') {
+            await checkBudgetAndCreateNotifications(user.uid);
+          }
+
           router.push(`/dashboard/accounts/${accountId}`);
         } catch (error) {
           console.error("Error adding transaction: ", error);

@@ -17,6 +17,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LogOut, User as UserIcon } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import NotificationBell from './NotificationBell';
 
 export default function Header() {
   const { user } = useAuth();
@@ -44,7 +45,8 @@ export default function Header() {
         </div>
         
         {/* User Menu - Responsive */}
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
+          <NotificationBell />
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

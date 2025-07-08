@@ -1,0 +1,115 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth';
+import { db } from '@/lib/firebase';
+import { collection, query, onSnapshot, orderBy, doc, updateDoc, Timestamp } from 'firebase/firestore';
+import type { Notification } from '@/types';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Bell, CheckCheck } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { ScrollArea } from '../ui/scroll-area';
+
+export default function NotificationBell() {
+    const { user } = useAuth();
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [isOpen, setIsOpen] = useState(false);
+
+    useEffect(() => {
+        if (!user || !db) return;
+
+        const q = query(
+            collection(db, 'users', user.uid, 'notifications'),
+            orderBy('createdAt', 'desc')
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const notifs = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    createdAt: (data.createdAt as Timestamp).toDate(),
+                } as Notification;
+            });
+            setNotifications(notifs);
+            setUnreadCount(notifs.filter(n => !n.read).length);
+        });
+
+        return () => unsubscribe();
+    }, [user, db]);
+
+    const handleMarkAllAsRead = async () => {
+        if (!user || !db || unreadCount === 0) return;
+        
+        const unreadNotifications = notifications.filter(n => !n.read);
+        for (const notif of unreadNotifications) {
+            const notifRef = doc(db, 'users', user.uid, 'notifications', notif.id);
+            await updateDoc(notifRef, { read: true });
+        }
+    };
+    
+    const handleOpenChange = (open: boolean) => {
+        setIsOpen(open);
+        if(open && unreadCount > 0) {
+            // Optional: Mark as read on open
+            // handleMarkAllAsRead();
+        }
+    }
+
+    return (
+        <Popover open={isOpen} onOpenChange={handleOpenChange}>
+            <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                            {unreadCount}
+                        </Badge>
+                    )}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-0" align="end">
+                <Card className="border-0 shadow-none">
+                    <CardHeader className="flex flex-row items-center justify-between border-b p-4">
+                        <CardTitle className="text-base font-semibold">Notifications</CardTitle>
+                        {unreadCount > 0 && (
+                             <Button variant="ghost" size="sm" onClick={handleMarkAllAsRead} className="text-xs h-auto p-1">
+                                <CheckCheck className="mr-1 h-3 w-3" />
+                                Mark all as read
+                            </Button>
+                        )}
+                    </CardHeader>
+                    <ScrollArea className="h-[300px]">
+                        <CardContent className="p-0">
+                            {notifications.length > 0 ? (
+                                <div className="divide-y">
+                                {notifications.map(notif => (
+                                    <div key={notif.id} className={cn("p-4", !notif.read && "bg-blue-500/5")}>
+                                        <div className="flex items-start gap-3">
+                                            {!notif.read && <div className="mt-1.5 h-2 w-2 rounded-full shrink-0 bg-primary"></div>}
+                                            <div className="flex-1">
+                                                <p className={cn("text-sm", !notif.read && "font-semibold")}>{notif.message}</p>
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                    {formatDistanceToNow(notif.createdAt, { addSuffix: true })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                </div>
+                            ) : (
+                                <p className="p-8 text-center text-sm text-muted-foreground">You have no notifications.</p>
+                            )}
+                        </CardContent>
+                    </ScrollArea>
+                </Card>
+            </PopoverContent>
+        </Popover>
+    );
+}

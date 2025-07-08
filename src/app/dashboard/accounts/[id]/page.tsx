@@ -27,6 +27,7 @@ import TransactionList from '@/components/dashboard/TransactionList';
 import TransactionModal from '@/components/dashboard/TransactionModal';
 import { categorizeTransaction } from '@/ai/flows/categorize-transaction';
 import Link from 'next/link';
+import { checkBudgetAndCreateNotifications } from '@/lib/notifications';
 
 export default function AccountDetailsPage() {
   const { user } = useAuth();
@@ -98,6 +99,7 @@ export default function AccountDetailsPage() {
         category,
         date: Timestamp.fromDate(data.date)
       });
+      await checkBudgetAndCreateNotifications(user.uid);
     } catch (error) {
       console.error("Error updating transaction: ", error);
       toast({ title: "Error", description: "Could not update transaction.", variant: "destructive" });
@@ -108,6 +110,7 @@ export default function AccountDetailsPage() {
     if (!user || !db || !accountId) return;
     try {
       await deleteDoc(doc(db, 'users', user.uid, 'accounts', accountId, 'transactions', id));
+      await checkBudgetAndCreateNotifications(user.uid);
     } catch (error) {
       console.error("Error deleting transaction: ", error);
       toast({ title: "Error", description: "Could not delete transaction.", variant: "destructive" });
