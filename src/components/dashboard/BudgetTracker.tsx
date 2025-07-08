@@ -43,14 +43,11 @@ export default function BudgetTracker() {
                 const userDoc = await getDoc(userDocRef);
                 if (userDoc.exists()) {
                     const userData = userDoc.data() as UserProfile;
-                    setBudget(userData.monthlyBudget ?? 0);
-                    setNewBudget(String(userData.monthlyBudget ?? ''));
-                    if (!userData.monthlyBudget) {
-                        setIsEditing(true);
-                    }
+                    const monthlyBudget = userData.monthlyBudget ?? null;
+                    setBudget(monthlyBudget);
+                    setNewBudget(String(monthlyBudget ?? ''));
                 } else {
-                    setBudget(0);
-                    setIsEditing(true);
+                    setBudget(null);
                 }
 
                 // Fetch total expenses for the current month
@@ -90,7 +87,7 @@ export default function BudgetTracker() {
     const handleSaveBudget = async () => {
         if (!user || !db) return;
         const budgetValue = parseFloat(newBudget);
-        if (isNaN(budgetValue) || budgetValue < 0) {
+        if (isNaN(budgetValue) || budgetValue <= 0) {
             toast({ title: "Invalid Input", description: "Please enter a valid positive number for your budget.", variant: "destructive" });
             return;
         }
@@ -118,71 +115,79 @@ export default function BudgetTracker() {
     const progressColorClass = useMemo(() => {
         const percentage = (expenses / (budget || 1)) * 100;
         if (percentage > 90) return 'bg-destructive';
-        if (percentage > 75) return 'bg-[hsl(var(--chart-4))]';
+        if (percentage > 75) return 'bg-yellow-500';
         return 'bg-primary';
     }, [expenses, budget]);
 
+    const renderContent = () => {
+        if (loading) {
+            return (
+                <div className="h-[78px] flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+            )
+        }
 
-    if (loading) {
+        if (isEditing) {
+            return (
+                <div className="space-y-4 pt-2">
+                    <p className="text-sm text-muted-foreground">Enter your total budget for the month.</p>
+                    <div className="flex items-center gap-2">
+                        <Input 
+                            type="number" 
+                            value={newBudget}
+                            onChange={(e) => setNewBudget(e.target.value)}
+                            className="h-9"
+                            placeholder="e.g., 50000"
+                        />
+                        <Button onClick={handleSaveBudget} disabled={isSaving} size="sm">
+                           {isSaving ? <Loader2 className="h-4 w-4 animate-spin"/> : <Save className="h-4 w-4" />}
+                           Save
+                        </Button>
+                        { budget !== null && 
+                            <Button variant="ghost" size="sm" onClick={() => { setIsEditing(false); setNewBudget(String(budget ?? ''))}} disabled={isSaving}>
+                                Cancel
+                            </Button>
+                        }
+                    </div>
+                </div>
+            )
+        }
+        
+        if (budget !== null && budget > 0) {
+            return (
+                <div className="space-y-3 pt-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="font-semibold text-foreground">{formatCurrency(expenses)}</span>
+                        <span>of</span>
+                        <span>{formatCurrency(budget)}</span>
+                        <span>spent</span>
+                        <Button onClick={() => setIsEditing(true)} variant="ghost" size="icon" className="h-6 w-6 ml-1">
+                            <Pencil className="h-3 w-3" />
+                        </Button>
+                    </div>
+                    <Progress value={progressPercentage} className="h-2" indicatorClassName={progressColorClass} />
+                    <p className="text-xs text-right text-muted-foreground">{progressPercentage.toFixed(1)}% used</p>
+                </div>
+            )
+        }
+
         return (
-            <Card>
-                <CardContent className="pt-6 h-[158px] flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-                </CardContent>
-            </Card>
-        );
+            <div className="text-center py-4">
+                 <p className="text-sm text-muted-foreground mb-4">You haven't set a budget yet. Get started now.</p>
+                <Button onClick={() => setIsEditing(true)}>Set Monthly Budget</Button>
+            </div>
+        )
     }
 
     return (
         <Card>
             <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle>Monthly Budget</CardTitle>
-                        <CardDescription>Track your spending against your monthly limit.</CardDescription>
-                    </div>
-                    { !isEditing && (
-                        <Button onClick={() => setIsEditing(true)} variant="ghost" size="sm">
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit Budget
-                        </Button>
-                    )}
-                </div>
+                <CardTitle>Monthly Budget</CardTitle>
+                <CardDescription>Your spending summary for the current month.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-                {isEditing ? (
-                    <div className="flex items-center gap-4">
-                        <Input 
-                            type="number" 
-                            value={newBudget}
-                            onChange={(e) => setNewBudget(e.target.value)}
-                            className="h-10"
-                            placeholder="e.g., 50000"
-                        />
-                        <Button onClick={handleSaveBudget} disabled={isSaving}>
-                           {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
-                           Save
-                        </Button>
-                        { (budget ?? 0) > 0 && 
-                            <Button variant="ghost" onClick={() => setIsEditing(false)} disabled={isSaving}>
-                                Cancel
-                            </Button>
-                        }
-                    </div>
-                ) : (
-                    <div className="space-y-2">
-                        <Progress value={progressPercentage} className="h-3" indicatorClassName={progressColorClass} />
-                        <div className="flex justify-between text-sm text-muted-foreground">
-                            <span>{formatCurrency(expenses)} spent</span>
-                            <span>Budget: {formatCurrency(budget ?? 0)}</span>
-                        </div>
-                    </div>
-                )}
-                 { budget === 0 && !isEditing &&
-                     <div className="text-center text-sm text-muted-foreground pt-2">
-                        You haven't set a budget yet. Click "Edit Budget" to get started.
-                    </div>
-                }
+            <CardContent>
+                {renderContent()}
             </CardContent>
         </Card>
     );
