@@ -1,7 +1,8 @@
 import { db } from '@/lib/firebase';
 import type { UserProfile } from '@/types';
 import { getDocs, query, where, Timestamp, doc, getDoc, updateDoc, addDoc, collection } from 'firebase/firestore';
-import { startOfMonth, endOfMonth, format } from 'date-fns';
+import { startOfMonth, endOfMonth, format, subMonths, startOfWeek, endOfWeek } from 'date-fns';
+import { generateMonthlySummary } from '@/ai/flows/monthly-summary-notification';
 
 export async function checkBudgetAndCreateNotifications(userId: string) {
     if (!db) return;
@@ -29,10 +30,8 @@ export async function checkBudgetAndCreateNotifications(userId: string) {
 
         let totalExpenses = 0;
         
-        // Fetch all accounts for the user first.
         const accountsSnapshot = await getDocs(collection(db, 'users', userId, 'accounts'));
 
-        // For each account, fetch the transactions within the current month.
         for (const accountDoc of accountsSnapshot.docs) {
             const transactionsQuery = query(
                 collection(db, 'users', userId, 'accounts', accountDoc.id, 'transactions'),
@@ -73,5 +72,69 @@ export async function checkBudgetAndCreateNotifications(userId: string) {
 
     } catch (error) {
         console.error("Error in checkBudgetAndCreateNotifications:", error);
+    }
+}
+
+export async function sendMonthlySummaryNotificationIfNeeded(userId: string) {
+    if (!db) return;
+
+    try {
+        const now = new Date();
+        // Only run on the first day of the month
+        if (now.getDate() !== 1) {
+            return;
+        }
+
+        const lastMonth = subMonths(now, 1);
+        const lastMonthStr = format(lastMonth, 'yyyy-MM');
+        
+        const userDocRef = doc(db, 'users', userId);
+        const userDoc = await getDoc(userDocRef);
+
+        if (!userDoc.exists()) return;
+        const userData = userDoc.data() as UserProfile;
+
+        // Check if summary for last month was already sent
+        if (userData.lastMonthlySummarySent === lastMonthStr || !userData.monthlyBudget || userData.monthlyBudget <= 0) {
+            return;
+        }
+
+        const startOfLastMonth = startOfMonth(lastMonth);
+        const endOfLastMonth = endOfMonth(lastMonth);
+
+        let totalExpensesLastMonth = 0;
+        const accountsSnapshot = await getDocs(collection(db, 'users', userId, 'accounts'));
+
+        for (const accountDoc of accountsSnapshot.docs) {
+            const transactionsQuery = query(
+                collection(db, 'users', userId, 'accounts', accountDoc.id, 'transactions'),
+                where('date', '>=', Timestamp.fromDate(startOfLastMonth)),
+                where('date', '<=', Timestamp.fromDate(endOfLastMonth)),
+                where('type', '==', 'expense')
+            );
+            
+            const transactionsSnapshot = await getDocs(transactionsQuery);
+            transactionsSnapshot.forEach(transactionDoc => {
+                totalExpensesLastMonth += transactionDoc.data().amount;
+            });
+        }
+
+        const { message } = await generateMonthlySummary({
+            totalExpenses: totalExpensesLastMonth,
+            monthlyBudget: userData.monthlyBudget,
+            monthName: format(lastMonth, 'MMMM'),
+        });
+
+        await addDoc(collection(db, 'users', userId, 'notifications'), {
+            message,
+            type: 'info',
+            read: false,
+            createdAt: Timestamp.now(),
+        });
+
+        await updateDoc(userDocRef, { lastMonthlySummarySent: lastMonthStr });
+
+    } catch (error) {
+        console.error("Error in sendMonthlySummaryNotificationIfNeeded:", error);
     }
 }

@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Header from '@/components/dashboard/Header';
+import { sendMonthlySummaryNotificationIfNeeded } from '@/lib/notifications';
 
 export default function DashboardLayout({
   children,
@@ -20,6 +21,9 @@ export default function DashboardLayout({
     }
     if (!user || !user.emailVerified) {
       router.push('/login');
+    } else {
+      // Check if a monthly summary notification needs to be sent
+      sendMonthlySummaryNotificationIfNeeded(user.uid);
     }
   }, [user, loading, router]);
 

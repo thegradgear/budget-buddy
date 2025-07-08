@@ -30,4 +30,5 @@ export type UserProfile = {
   monthlyBudget?: number;
   lastNotification90Sent?: string; // e.g. "2024-07"
   lastNotification100Sent?: string; // e.g. "2024-07"
+  lastMonthlySummarySent?: string; // e.g. "2024-07"
 }
