@@ -49,9 +49,9 @@ export default function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full group">
-                  <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
+                  <Avatar className="h-8 w-8 sm:h-10 sm:w-10 ring-2 ring-primary ring-offset-2 ring-offset-background">
                     <AvatarImage src={user.photoURL ?? ''} alt="User avatar" />
-                    <AvatarFallback className="text-xs sm:text-sm group-hover:bg-transparent">
+                    <AvatarFallback className="text-xs sm:text-sm group-hover:bg-accent">
                       {getInitials(user.email)}
                     </AvatarFallback>
                   </Avatar>
