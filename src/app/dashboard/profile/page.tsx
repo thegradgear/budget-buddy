@@ -15,6 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const profileSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -110,6 +111,20 @@ export default function ProfilePage() {
     }
   }
 
+  const getInitials = (name?: string | null, email?: string | null) => {
+    if (name) {
+      const parts = name.split(' ').filter(Boolean);
+      if (parts.length > 1) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+      return name.substring(0, 2).toUpperCase();
+    }
+    if (email) {
+      return email.substring(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
+
   if (fetching) {
       return (
         <div className="flex justify-center items-center h-full">
@@ -126,6 +141,12 @@ export default function ProfilePage() {
           <CardDescription>Manage your account settings.</CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="flex justify-center mb-8">
+            <Avatar className="h-24 w-24 text-3xl">
+                <AvatarImage src={user?.photoURL ?? undefined} alt={user?.displayName ?? ''} />
+                <AvatarFallback>{getInitials(user?.displayName, user?.email)}</AvatarFallback>
+            </Avatar>
+          </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
@@ -141,6 +162,12 @@ export default function ProfilePage() {
                   </FormItem>
                 )}
               />
+               <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                    <Input value={user?.email ?? ''} disabled />
+                </FormControl>
+              </FormItem>
               <FormField
                 control={form.control}
                 name="phone"
