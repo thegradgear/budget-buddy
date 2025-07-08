@@ -39,14 +39,14 @@ const prompt = ai.definePrompt({
   name: 'spendingSuggestionsPrompt',
   input: {schema: SpendingSuggestionsInputSchema},
   output: {schema: SpendingSuggestionsOutputSchema},
-  prompt: `You are a personal finance advisor. Analyze the user's transaction history and current budget to provide personalized suggestions on how to optimize their spending and savings.
+  prompt: `You are a personal finance advisor for users in India. Analyze the user's transaction history and current budget, which are in Indian Rupees (INR), to provide personalized suggestions on how to optimize their spending and savings.
 
 Transaction History:
 {{transactionHistory}}
 
-Current Budget: {{currentBudget}}
+Current Budget: ₹{{currentBudget}}
 
-Provide clear and actionable suggestions.`,
+Provide clear and actionable suggestions relevant to the Indian context.`,
 });
 
 const spendingSuggestionsFlow = ai.defineFlow(

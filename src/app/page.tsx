@@ -1,7 +1,7 @@
 // src/app/page.tsx
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { DollarSign, BarChart, Zap, UserPlus, ListPlus, Lightbulb, Twitter, Linkedin, Facebook, Quote } from "lucide-react";
+import { IndianRupee, BarChart, Zap, UserPlus, ListPlus, Lightbulb, Twitter, Linkedin, Facebook, Quote } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import Image from "next/image";
@@ -67,7 +67,7 @@ export default function Home() {
               <Card className="h-full">
                 <CardHeader className="flex flex-row items-center gap-4 pb-4">
                   <div className="bg-primary-light p-3 rounded-full flex-shrink-0">
-                    <DollarSign className="h-6 w-6 text-primary" />
+                    <IndianRupee className="h-6 w-6 text-primary" />
                   </div>
                   <CardTitle className="text-lg sm:text-xl">Easy Transaction Entry</CardTitle>
                 </CardHeader>

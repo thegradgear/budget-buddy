@@ -23,7 +23,7 @@ export default function SmartSuggestions({ transactions }: Props) {
     setSuggestions('');
     try {
       const transactionHistory = transactions
-        .map(t => `${format(new Date(t.date), 'yyyy-MM-dd')}: ${t.type === 'expense' ? '-' : '+'}$${t.amount.toFixed(2)} for ${t.description}`)
+        .map(t => `${format(new Date(t.date), 'yyyy-MM-dd')}: ${t.type === 'expense' ? '-' : '+'}₹${t.amount.toFixed(2)} for ${t.description}`)
         .join('\n');
       
       const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);

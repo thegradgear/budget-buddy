@@ -58,7 +58,7 @@ export default function SpendingChart({ transactions }: Props) {
                     axisLine={false}
                     tickMargin={8}
                     fontSize={12}
-                    tickFormatter={(value) => `$${value}`}
+                    tickFormatter={(value) => `₹${value}`}
                 />
                 <ChartTooltip
                     cursor={false}
