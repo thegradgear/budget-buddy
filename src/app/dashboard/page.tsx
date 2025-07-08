@@ -35,6 +35,11 @@ export default function DashboardPage() {
   const [transactionsLoading, setTransactionsLoading] = useState(true);
   
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState('');
+
+  useEffect(() => {
+    setCurrentDate(new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+  }, []);
 
   // Fetch accounts
   useEffect(() => {
@@ -145,7 +150,7 @@ export default function DashboardPage() {
       <>
         <div className="flex flex-col items-center justify-center h-[50vh] text-center gap-4">
           <Banknote className="w-16 h-16 text-muted-foreground" />
-          <h2 className="text-2xl font-semibold">Welcome to Budget Buddy!</h2>
+          <h2 className="text-2xl font-semibold">Welcome, {user?.displayName || 'User'}!</h2>
           <p className="text-muted-foreground max-w-sm">To get started, create your first financial account. You can add savings, checking, or credit card accounts.</p>
           <Button onClick={() => setIsAccountModalOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -163,6 +168,11 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
+       <div>
+        <h1 className="text-3xl font-bold text-foreground">Welcome back, {user?.displayName || 'User'}!</h1>
+        <p className="text-muted-foreground">{currentDate}</p>
+      </div>
+
       {transactionsLoading ? (
          <div className="flex h-[50vh] items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
