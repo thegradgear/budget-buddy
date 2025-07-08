@@ -6,24 +6,12 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import Image from "next/image";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import LandingHeader from "@/components/LandingHeader";
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Responsive Header */}
-      <header className="h-14 sm:h-16 flex items-center border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10">
-        <div className="w-full max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12">
-          <Logo />
-          <nav className="flex gap-2 sm:gap-4">
-            <Button variant="ghost" size="sm" asChild className="text-sm">
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button size="sm" asChild className="text-sm">
-              <Link href="/signup">Get Started</Link>
-            </Button>
-          </nav>
-        </div>
-      </header>
+      <LandingHeader />
 
       <main className="flex-1">
         {/* Hero Section - Responsive */}
