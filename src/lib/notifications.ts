@@ -1,5 +1,3 @@
-'use server';
-
 import { db } from '@/lib/firebase';
 import type { UserProfile } from '@/types';
 import { getDocs, query, where, Timestamp, doc, getDoc, updateDoc, addDoc, collection } from 'firebase/firestore';
