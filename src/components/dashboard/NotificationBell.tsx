@@ -46,7 +46,7 @@ export default function NotificationBell() {
     }, [user, db]);
 
     useEffect(() => {
-        if (!user || !db || !isOpen) return;
+        if (!user || !db) return;
 
         const checkBudgetStatus = async () => {
             try {
