@@ -45,66 +45,65 @@ export default function NotificationBell() {
         return () => unsubscribe();
     }, [user, db]);
 
-    useEffect(() => {
+    const checkBudgetStatus = async () => {
         if (!user || !db) return;
+        try {
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDoc = await getDoc(userDocRef);
+            
+            if (!userDoc.exists()) {
+                setBudgetStatus('ok');
+                return;
+            }
 
-        const checkBudgetStatus = async () => {
-            try {
-                const userDocRef = doc(db, 'users', user.uid);
-                const userDoc = await getDoc(userDocRef);
-                
-                if (!userDoc.exists()) {
-                    setBudgetStatus('ok');
-                    return;
-                }
+            const userData = userDoc.data() as UserProfile;
+            const { monthlyBudget } = userData;
 
-                const userData = userDoc.data() as UserProfile;
-                const { monthlyBudget } = userData;
+            if (!monthlyBudget || monthlyBudget <= 0) {
+                setBudgetStatus('ok');
+                return;
+            }
+            
+            const now = new Date();
+            const start = startOfMonth(now);
+            const end = endOfMonth(now);
+            let totalExpenses = 0;
+            
+            const accountsSnapshot = await getDocs(collection(db, 'users', user.uid, 'accounts'));
 
-                if (!monthlyBudget || monthlyBudget <= 0) {
-                    setBudgetStatus('ok');
-                    return;
-                }
+            for (const accountDoc of accountsSnapshot.docs) {
+                const transactionsQuery = query(
+                    collection(db, 'users', user.uid, 'accounts', accountDoc.id, 'transactions'),
+                    where('date', '>=', Timestamp.fromDate(start)),
+                    where('date', '<=', Timestamp.fromDate(end)),
+                    where('type', '==', 'expense')
+                );
                 
-                const now = new Date();
-                const start = startOfMonth(now);
-                const end = endOfMonth(now);
-                let totalExpenses = 0;
-                
-                const accountsSnapshot = await getDocs(collection(db, 'users', user.uid, 'accounts'));
-
-                for (const accountDoc of accountsSnapshot.docs) {
-                    const transactionsQuery = query(
-                        collection(db, 'users', user.uid, 'accounts', accountDoc.id, 'transactions'),
-                        where('date', '>=', Timestamp.fromDate(start)),
-                        where('date', '<=', Timestamp.fromDate(end)),
-                        where('type', '==', 'expense')
-                    );
-                    
-                    const transactionsSnapshot = await getDocs(transactionsQuery);
-                    transactionsSnapshot.forEach(transactionDoc => {
-                        totalExpenses += transactionDoc.data().amount;
-                    });
-                }
-                
-                const spendingPercentage = (totalExpenses / monthlyBudget) * 100;
-                
-                if (spendingPercentage >= 100) {
-                    setBudgetStatus('danger');
-                } else if (spendingPercentage >= 90) {
-                    setBudgetStatus('warning');
-                } else {
-                    setBudgetStatus('ok');
-                }
-
-            } catch (error) {
-                console.error("Error checking budget status:", error);
+                const transactionsSnapshot = await getDocs(transactionsQuery);
+                transactionsSnapshot.forEach(transactionDoc => {
+                    totalExpenses += transactionDoc.data().amount;
+                });
+            }
+            
+            const spendingPercentage = (totalExpenses / monthlyBudget) * 100;
+            
+            if (spendingPercentage >= 100) {
+                setBudgetStatus('danger');
+            } else if (spendingPercentage >= 90) {
+                setBudgetStatus('warning');
+            } else {
                 setBudgetStatus('ok');
             }
-        };
 
+        } catch (error) {
+            console.error("Error checking budget status:", error);
+            setBudgetStatus('ok');
+        }
+    };
+
+    useEffect(() => {
         checkBudgetStatus();
-    }, [user, db, isOpen]);
+    }, [user, db]);
 
     const handleMarkAllAsRead = async () => {
         if (!user || !db || unreadCount === 0) return;
@@ -118,6 +117,9 @@ export default function NotificationBell() {
     
     const handleOpenChange = (open: boolean) => {
         setIsOpen(open);
+        if (open) {
+            checkBudgetStatus();
+        }
     }
     
     const BellIcon = () => {
@@ -133,7 +135,7 @@ export default function NotificationBell() {
     return (
         <Popover open={isOpen} onOpenChange={handleOpenChange}>
             <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative data-[state=open]:bg-accent">
+                <Button variant="ghost" size="icon" className="relative data-[state=open]:bg-accent rounded-full border">
                     <BellIcon />
                     {unreadCount > 0 && (
                         <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
