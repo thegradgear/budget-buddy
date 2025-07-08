@@ -1,43 +1,112 @@
 // src/app/dashboard/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Transaction } from '@/types';
 import AccountOverview from '@/components/dashboard/AccountOverview';
 import TransactionList from '@/components/dashboard/TransactionList';
 import SpendingChart from '@/components/dashboard/SpendingChart';
 import SmartSuggestions from '@/components/dashboard/SmartSuggestions';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { Loader2, PlusCircle } from 'lucide-react';
 import TransactionModal from '@/components/dashboard/TransactionModal';
 import { useAuth } from '@/lib/auth';
-
-const mockTransactions: Transaction[] = [
-    { id: '1', type: 'income', amount: 2000, description: 'Salary', date: new Date('2024-07-15') },
-    { id: '2', type: 'expense', amount: 50, description: 'Groceries', date: new Date('2024-07-16') },
-    { id: '3', type: 'expense', amount: 25, description: 'Coffee', date: new Date('2024-07-17') },
-    { id: '4', type: 'expense', amount: 120, description: 'Dinner with friends', date: new Date('2024-07-18') },
-    { id: '5', type: 'income', amount: 300, description: 'Freelance Project', date: new Date('2024-07-20') },
-    { id: '6', type: 'expense', amount: 80, description: 'Internet Bill', date: new Date('2024-07-21') },
-];
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  Timestamp,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const { toast } = useToast();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
-  const handleAddTransaction = (transaction: Omit<Transaction, 'id'>) => {
-    const newTransaction = { ...transaction, id: new Date().toISOString() };
-    setTransactions(prev => [...prev, newTransaction].sort((a, b) => b.date.getTime() - a.date.getTime()));
+  useEffect(() => {
+    if (!user || !db) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const q = query(collection(db, 'users', user.uid, 'transactions'), orderBy('date', 'desc'));
+
+    const unsubscribe = onSnapshot(q, 
+      (querySnapshot) => {
+        const transactionsData: Transaction[] = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            type: data.type,
+            amount: data.amount,
+            description: data.description,
+            date: (data.date as Timestamp).toDate(),
+          };
+        });
+        setTransactions(transactionsData);
+        setLoading(false);
+      }, 
+      (error) => {
+        console.error("Error fetching transactions: ", error);
+        toast({
+          title: "Error",
+          description: "Could not fetch transactions.",
+          variant: "destructive",
+        });
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [user, toast]);
+
+  const handleAddTransaction = async (transaction: Omit<Transaction, 'id'>) => {
+    if (!user || !db) return;
+    try {
+      await addDoc(collection(db, 'users', user.uid, 'transactions'), {
+        ...transaction,
+        date: Timestamp.fromDate(transaction.date)
+      });
+    } catch (error) {
+      console.error("Error adding transaction: ", error);
+      toast({ title: "Error", description: "Could not add transaction.", variant: "destructive" });
+    }
   };
 
-  const handleUpdateTransaction = (updatedTransaction: Transaction) => {
-    setTransactions(prev => prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t).sort((a,b) => b.date.getTime() - a.date.getTime()));
+  const handleUpdateTransaction = async (updatedTransaction: Transaction) => {
+    if (!user || !db) return;
+    const { id, ...data } = updatedTransaction;
+    try {
+      const docRef = doc(db, 'users', user.uid, 'transactions', id);
+      await updateDoc(docRef, {
+        ...data,
+        date: Timestamp.fromDate(data.date)
+      });
+    } catch (error) {
+      console.error("Error updating transaction: ", error);
+      toast({ title: "Error", description: "Could not update transaction.", variant: "destructive" });
+    }
   };
   
-  const handleDeleteTransaction = (id: string) => {
-    setTransactions(prev => prev.filter(t => t.id !== id));
+  const handleDeleteTransaction = async (id: string) => {
+    if (!user || !db) return;
+    try {
+      await deleteDoc(doc(db, 'users', user.uid, 'transactions', id));
+    } catch (error) {
+      console.error("Error deleting transaction: ", error);
+      toast({ title: "Error", description: "Could not delete transaction.", variant: "destructive" });
+    }
   };
 
   const openEditModal = (transaction: Transaction) => {
@@ -48,6 +117,14 @@ export default function DashboardPage() {
   const openAddModal = () => {
     setEditingTransaction(null);
     setIsModalOpen(true);
+  }
+
+  if (loading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
   
   return (
@@ -89,11 +166,11 @@ export default function DashboardPage() {
       <TransactionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={(t) => {
+        onSave={async (t) => {
           if ('id' in t && t.id) {
-            handleUpdateTransaction(t as Transaction);
+            await handleUpdateTransaction(t as Transaction);
           } else {
-            handleAddTransaction(t);
+            await handleAddTransaction(t as Omit<Transaction, 'id'>);
           }
         }}
         transaction={editingTransaction}
