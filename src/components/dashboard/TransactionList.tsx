@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MoreVertical, Pencil, Trash2, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
+import { MoreVertical, Pencil, Trash2, ChevronLeft, ChevronRight, ArrowUpDown, RotateCcw } from 'lucide-react';
 import { format } from 'date-fns';
 import {
     DropdownMenu,
@@ -126,6 +126,13 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
         return labels[`${sortConfig.key}_${sortConfig.direction}`] || 'Sort by';
     }
 
+    const handleClearFilters = () => {
+        setSearchQuery('');
+        setCategoryFilter('all');
+        setTypeFilter('all');
+        setSortConfig({ key: 'date', direction: 'desc' });
+    };
+
   return (
     <Card>
       <CardHeader>
@@ -139,7 +146,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
                 placeholder="Search descriptions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full md:max-w-sm"
+                className="w-full md:max-w-xs"
             />
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
@@ -176,12 +183,15 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
                     <DropdownMenuItem onClick={() => setSortConfig({ key: 'amount', direction: 'asc' })}>Amount: Low to High</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
+            <Button variant="ghost" onClick={handleClearFilters} size="icon" title="Clear Filters">
+                <RotateCcw className="h-4 w-4" />
+            </Button>
         </div>
       </div>
 
       <CardContent className="p-0">
         {/* Desktop View */}
-        <div className='hidden md:block'>
+        <div className='hidden md:block min-h-[620px]'>
             <Table>
             <TableHeader>
                 <TableRow>
@@ -238,7 +248,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
                 ))
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={6} className="text-center h-24">No transactions found.</TableCell>
+                        <TableCell colSpan={6} className="text-center h-[560px]">No transactions found.</TableCell>
                     </TableRow>
                 )}
             </TableBody>
@@ -246,8 +256,8 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
         </div>
 
         {/* Mobile View */}
-        <div className="md:hidden p-4">
-            <div className="space-y-4">
+        <div className="md:hidden p-4 min-h-[500px] flex flex-col">
+            <div className="space-y-4 flex-grow">
                 {paginatedTransactions.length > 0 ? (
                     paginatedTransactions.map((t) => (
                         <Card key={t.id} className="p-4 flex justify-between items-start">
@@ -293,7 +303,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
                         </Card>
                     ))
                 ) : (
-                    <div className="text-center h-24 flex items-center justify-center">
+                    <div className="text-center h-full flex items-center justify-center text-muted-foreground">
                         <p>No transactions found.</p>
                     </div>
                 )}
