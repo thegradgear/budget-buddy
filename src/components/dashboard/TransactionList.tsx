@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Transaction } from '@/types';
 import {
   Table,
@@ -7,9 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { MoreVertical, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import {
     DropdownMenu,
@@ -26,7 +27,32 @@ type Props = {
   onDelete: (id: string) => void;
 };
 
+const TRANSACTIONS_PER_PAGE = 10;
+
 export default function TransactionList({ transactions, onEdit, onDelete }: Props) {
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const totalPages = Math.ceil(transactions.length / TRANSACTIONS_PER_PAGE);
+
+    const paginatedTransactions = transactions.slice(
+        (currentPage - 1) * TRANSACTIONS_PER_PAGE,
+        currentPage * TRANSACTIONS_PER_PAGE
+    );
+    
+    useEffect(() => {
+        if (paginatedTransactions.length === 0 && currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    }, [paginatedTransactions.length, currentPage]);
+
+    const handlePrevPage = () => {
+        setCurrentPage((prev) => Math.max(prev - 1, 1));
+    };
+
+    const handleNextPage = () => {
+        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    };
+    
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-IN', {
           style: 'currency',
@@ -56,7 +82,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
             </TableHeader>
             <TableBody>
                 {transactions.length > 0 ? (
-                transactions.map((t) => (
+                paginatedTransactions.map((t) => (
                     <TableRow key={t.id}>
                     <TableCell className="font-medium">{t.description}</TableCell>
                     <TableCell>
@@ -110,7 +136,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
         <div className="md:hidden">
             <div className="space-y-4">
                 {transactions.length > 0 ? (
-                    transactions.map((t) => (
+                    paginatedTransactions.map((t) => (
                         <Card key={t.id} className="p-4 flex justify-between items-start">
                             <div className="flex-1 space-y-2">
                                 <p className="font-medium truncate">{t.description}</p>
@@ -162,6 +188,33 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
         </div>
 
       </CardContent>
+      {totalPages > 1 && (
+        <CardFooter className="flex items-center justify-between border-t px-6 py-4">
+            <div className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+            </div>
+            <div className="flex items-center space-x-2">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1}
+                >
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Previous
+                </Button>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                >
+                    Next
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+            </div>
+        </CardFooter>
+      )}
     </Card>
   );
 }
