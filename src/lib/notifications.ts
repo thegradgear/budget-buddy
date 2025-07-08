@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/firebase';
 import type { UserProfile } from '@/types';
-import { collectionGroup, getDocs, query, where, Timestamp, doc, getDoc, updateDoc, addDoc, collection } from 'firebase/firestore';
+import { getDocs, query, where, Timestamp, doc, getDoc, updateDoc, addDoc, collection } from 'firebase/firestore';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
 
 export async function checkBudgetAndCreateNotifications(userId: string) {
@@ -29,24 +29,26 @@ export async function checkBudgetAndCreateNotifications(userId: string) {
         const start = startOfMonth(now);
         const end = endOfMonth(now);
 
-        const transactionsQuery = query(
-            collectionGroup(db, 'transactions'),
-            where('date', '>=', Timestamp.fromDate(start)),
-            where('date', '<=', Timestamp.fromDate(end))
-        );
-        
-        const snapshot = await getDocs(transactionsQuery);
-        
         let totalExpenses = 0;
-        snapshot.docs.forEach(doc => {
-            if (doc.ref.path.startsWith(`users/${userId}/`)) {
-                const data = doc.data();
-                if (data.type === 'expense') {
-                    totalExpenses += data.amount;
-                }
-            }
-        });
+        
+        // Fetch all accounts for the user first.
+        const accountsSnapshot = await getDocs(collection(db, 'users', userId, 'accounts'));
 
+        // For each account, fetch the transactions within the current month.
+        for (const accountDoc of accountsSnapshot.docs) {
+            const transactionsQuery = query(
+                collection(db, 'users', userId, 'accounts', accountDoc.id, 'transactions'),
+                where('date', '>=', Timestamp.fromDate(start)),
+                where('date', '<=', Timestamp.fromDate(end)),
+                where('type', '==', 'expense')
+            );
+            
+            const transactionsSnapshot = await getDocs(transactionsQuery);
+            transactionsSnapshot.forEach(transactionDoc => {
+                totalExpenses += transactionDoc.data().amount;
+            });
+        }
+        
         const spendingPercentage = (totalExpenses / monthlyBudget) * 100;
         const budgetFormatted = `₹${monthlyBudget.toLocaleString('en-IN')}`;
 
