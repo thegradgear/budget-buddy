@@ -2,14 +2,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Transaction } from '@/types';
+import { Account, Transaction } from '@/types';
 import AccountOverview from '@/components/dashboard/AccountOverview';
 import TransactionList from '@/components/dashboard/TransactionList';
 import SpendingChart from '@/components/dashboard/SpendingChart';
 import SmartSuggestions from '@/components/dashboard/SmartSuggestions';
 import { Button } from '@/components/ui/button';
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2, PlusCircle, Banknote } from 'lucide-react';
 import TransactionModal from '@/components/dashboard/TransactionModal';
+import AccountModal from '@/components/dashboard/AccountModal';
 import { useAuth } from '@/lib/auth';
 import {
   collection,
@@ -21,27 +22,80 @@ import {
   deleteDoc,
   doc,
   Timestamp,
+  getDocs,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { categorizeTransaction } from '@/ai/flows/categorize-transaction';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [activeAccount, setActiveAccount] = useState<Account | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const [accountsLoading, setAccountsLoading] = useState(true);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
+  
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
+  // Fetch accounts
   useEffect(() => {
     if (!user || !db) {
-      setLoading(false);
+      setAccountsLoading(false);
       return;
     }
 
-    setLoading(true);
-    const q = query(collection(db, 'users', user.uid, 'transactions'), orderBy('date', 'desc'));
+    const accountsCollection = collection(db, 'users', user.uid, 'accounts');
+    
+    const unsubscribe = onSnapshot(accountsCollection, (querySnapshot) => {
+        const accountsData: Account[] = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+        } as Account));
+        
+        setAccounts(accountsData);
+
+        if (accountsData.length > 0) {
+            // If there's an active account, check if it still exists
+            if (activeAccount && accountsData.some(a => a.id === activeAccount.id)) {
+                // It still exists, no need to change active account
+            } else {
+                // Set the first account as active
+                setActiveAccount(accountsData[0]);
+            }
+        } else {
+            setActiveAccount(null);
+        }
+        
+        setAccountsLoading(false);
+    }, (error) => {
+        console.error("Error fetching accounts: ", error);
+        toast({ title: "Error", description: "Could not fetch accounts.", variant: "destructive" });
+        setAccountsLoading(false);
+    });
+
+    return () => unsubscribe();
+}, [user, toast]);
+
+
+  // Fetch transactions for active account
+  useEffect(() => {
+    if (!user || !db || !activeAccount) {
+      setTransactions([]);
+      return () => {};
+    }
+
+    setTransactionsLoading(true);
+    const q = query(
+      collection(db, 'users', user.uid, 'accounts', activeAccount.id, 'transactions'),
+      orderBy('date', 'desc')
+    );
 
     const unsubscribe = onSnapshot(q, 
       (querySnapshot) => {
@@ -57,31 +111,44 @@ export default function DashboardPage() {
           };
         });
         setTransactions(transactionsData);
-        setLoading(false);
+        setTransactionsLoading(false);
       }, 
       (error) => {
         console.error("Error fetching transactions: ", error);
-        toast({
-          title: "Error",
-          description: "Could not fetch transactions.",
-          variant: "destructive",
-        });
-        setLoading(false);
+        toast({ title: "Error", description: "Could not fetch transactions.", variant: "destructive" });
+        setTransactionsLoading(false);
       }
     );
 
     return () => unsubscribe();
-  }, [user, toast]);
+  }, [user, activeAccount, toast]);
+
+  const handleSaveAccount = async (account: Omit<Account, 'id'>) => {
+    if (!user || !db) return;
+    try {
+      await addDoc(collection(db, 'users', user.uid, 'accounts'), account);
+    } catch (error) {
+      console.error("Error adding account: ", error);
+      toast({ title: "Error", description: "Could not add account.", variant: "destructive" });
+    }
+  };
+
+  const handleSetActiveAccount = (accountId: string) => {
+    const account = accounts.find(a => a.id === accountId);
+    if (account) {
+      setActiveAccount(account);
+    }
+  };
 
   const handleAddTransaction = async (transaction: Omit<Transaction, 'id'>) => {
-    if (!user || !db) return;
+    if (!user || !db || !activeAccount) return;
     try {
       const { category } = await categorizeTransaction({
         description: transaction.description,
         type: transaction.type,
       });
 
-      await addDoc(collection(db, 'users', user.uid, 'transactions'), {
+      await addDoc(collection(db, 'users', user.uid, 'accounts', activeAccount.id, 'transactions'), {
         ...transaction,
         category,
         date: Timestamp.fromDate(transaction.date)
@@ -93,14 +160,14 @@ export default function DashboardPage() {
   };
 
   const handleUpdateTransaction = async (updatedTransaction: Transaction) => {
-    if (!user || !db) return;
+    if (!user || !db || !activeAccount) return;
     const { id, ...data } = updatedTransaction;
     try {
       const { category } = await categorizeTransaction({
         description: data.description,
         type: data.type,
       });
-      const docRef = doc(db, 'users', user.uid, 'transactions', id);
+      const docRef = doc(db, 'users', user.uid, 'accounts', activeAccount.id, 'transactions', id);
       await updateDoc(docRef, {
         ...data,
         category,
@@ -113,9 +180,9 @@ export default function DashboardPage() {
   };
   
   const handleDeleteTransaction = async (id: string) => {
-    if (!user || !db) return;
+    if (!user || !db || !activeAccount) return;
     try {
-      await deleteDoc(doc(db, 'users', user.uid, 'transactions', id));
+      await deleteDoc(doc(db, 'users', user.uid, 'accounts', activeAccount.id, 'transactions', id));
     } catch (error) {
       console.error("Error deleting transaction: ", error);
       toast({ title: "Error", description: "Could not delete transaction.", variant: "destructive" });
@@ -124,15 +191,15 @@ export default function DashboardPage() {
 
   const openEditModal = (transaction: Transaction) => {
     setEditingTransaction(transaction);
-    setIsModalOpen(true);
+    setIsTransactionModalOpen(true);
   }
 
   const openAddModal = () => {
     setEditingTransaction(null);
-    setIsModalOpen(true);
+    setIsTransactionModalOpen(true);
   }
 
-  if (loading) {
+  if (accountsLoading) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -140,45 +207,89 @@ export default function DashboardPage() {
     );
   }
   
+  if (accounts.length === 0) {
+    return (
+      <>
+        <div className="flex flex-col items-center justify-center h-[50vh] text-center gap-4">
+          <Banknote className="w-16 h-16 text-muted-foreground" />
+          <h2 className="text-2xl font-semibold">Welcome to Budget Buddy!</h2>
+          <p className="text-muted-foreground max-w-sm">To get started, create your first financial account. You can add savings, checking, credit cards, or cash accounts.</p>
+          <Button onClick={() => setIsAccountModalOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Create Your First Account
+          </Button>
+        </div>
+        <AccountModal 
+          isOpen={isAccountModalOpen} 
+          onClose={() => setIsAccountModalOpen(false)} 
+          onSave={handleSaveAccount} 
+        />
+      </>
+    );
+  }
+  
+  const loading = transactionsLoading && activeAccount;
+
   return (
     <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-      {/* Header Section - Responsive flex layout */}
+      {/* Header Section */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold">
-          Welcome, {user?.displayName?.split(' ')[0] || 'Buddy'}!
-        </h1>
-        <Button onClick={openAddModal} className="w-full sm:w-auto sm:min-w-[160px]">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <Select onValueChange={handleSetActiveAccount} value={activeAccount?.id}>
+            <SelectTrigger className="w-[180px] sm:w-[200px] h-11 text-lg font-semibold">
+              <SelectValue placeholder="Select Account" />
+            </SelectTrigger>
+            <SelectContent>
+              {accounts.map(acc => (
+                <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" onClick={() => setIsAccountModalOpen(true)}>
+             <PlusCircle className="mr-2 h-4 w-4" />
+             New Account
+          </Button>
+        </div>
+        <Button onClick={openAddModal} className="w-full sm:w-auto sm:min-w-[160px]" disabled={!activeAccount}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Add Transaction
         </Button>
       </div>
 
-      {/* Account Overview - Full width on all screens */}
-      <AccountOverview transactions={transactions} />
+      {loading ? (
+        <div className="flex h-[50vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : (
+        <>
+          <AccountOverview transactions={transactions} />
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8 xl:grid-cols-3">
+            <div className="xl:col-span-2">
+              <SpendingChart transactions={transactions} />
+            </div>
+            <div className="xl:col-span-1">
+              <SmartSuggestions transactions={transactions} />
+            </div>
+          </div>
+          <TransactionList 
+            transactions={transactions} 
+            onEdit={openEditModal}
+            onDelete={handleDeleteTransaction}
+          />
+        </>
+      )}
 
-      {/* Chart and Suggestions Grid - Responsive layout */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8 xl:grid-cols-3">
-        {/* Spending Chart - Takes full width on mobile, 2/3 on xl screens */}
-        <div className="xl:col-span-2">
-          <SpendingChart transactions={transactions} />
-        </div>
-        {/* Smart Suggestions - Full width on mobile, 1/3 on xl screens */}
-        <div className="xl:col-span-1">
-          <SmartSuggestions transactions={transactions} />
-        </div>
-      </div>
-      
-      {/* Transaction List - Full width, responsive internally */}
-      <TransactionList 
-        transactions={transactions} 
-        onEdit={openEditModal}
-        onDelete={handleDeleteTransaction}
+      {/* Modals */}
+      <AccountModal
+        isOpen={isAccountModalOpen}
+        onClose={() => {
+          setIsAccountModalOpen(false);
+        }}
+        onSave={handleSaveAccount}
       />
-
-      {/* Modal - Responsive by default */}
       <TransactionModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isTransactionModalOpen}
+        onClose={() => setIsTransactionModalOpen(false)}
         onSave={async (t) => {
           if ('id' in t && t.id) {
             await handleUpdateTransaction(t as Transaction);

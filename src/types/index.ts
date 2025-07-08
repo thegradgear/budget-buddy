@@ -6,3 +6,9 @@ export type Transaction = {
   date: Date;
   category?: string;
 };
+
+export type Account = {
+  id: string;
+  name: string;
+  type: 'Savings' | 'Checking' | 'Credit Card' | 'Cash';
+};
