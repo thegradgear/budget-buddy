@@ -10,15 +10,17 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="px-4 lg:px-6 h-16 flex items-center border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10">
-        <Logo />
-        <nav className="ml-auto flex gap-2 sm:gap-6">
-          <Button variant="ghost" asChild>
-            <Link href="/login">Login</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/signup">Get Started</Link>
-          </Button>
-        </nav>
+        <div className="container flex items-center w-full">
+          <Logo />
+          <nav className="ml-auto flex gap-2 sm:gap-6">
+            <Button variant="ghost" asChild>
+              <Link href="/login">Login</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/signup">Get Started</Link>
+            </Button>
+          </nav>
+        </div>
       </header>
       <main className="flex-1">
         {/* Hero Section */}
@@ -148,7 +150,7 @@ export default function Home() {
         
         {/* Testimonials Section */}
         <section id="testimonials" className="w-full py-12 md:py-24 lg:py-32 bg-secondary">
-          <div className="container mx-auto px-4 md:px-6">
+          <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-h2 font-semibold tracking-tight">Loved by Savers Everywhere</h2>
@@ -231,7 +233,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-navy text-primary-foreground">
-        <div className="container mx-auto py-12 px-4 md:px-6">
+        <div className="container py-12 px-4 md:px-6">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
             <div className="flex flex-col gap-4">
               <Logo className="text-white" />
