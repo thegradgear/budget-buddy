@@ -71,8 +71,8 @@ Sum the points from all three sections to get the final score.
 **Step 4: Generate Analysis**
 Based on the score and the 50/30/20 breakdown, provide:
 1.  A brief, encouraging summary of their financial health.
-2.  2-3 key strengths (e.g., "You're doing a great job keeping your 'Needs' spending in check.").
-3.  2-3 actionable areas for improvement based on the rule (e.g., "Your 'Wants' spending is a bit high. Try categorizing your subscriptions in Budget Buddy to see where you can cut back.").
+2.  2-3 key strengths. Be specific and positive. For example: "You are doing an excellent job managing your essential living costs." or "Your savings rate is impressive this month."
+3.  2-3 actionable areas for improvement. Provide specific, practical advice without using the terms 'Needs' or 'Wants'. For example: "Reviewing your spending on restaurant meals and online shopping could help you reach your savings goals faster." or "Consider setting up a recurring investment in Budget Buddy to automate your savings."
 
 **User's Transaction History:**
 {{transactionHistory}}`,
