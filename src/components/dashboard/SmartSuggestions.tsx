@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Transaction, Account } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -19,6 +19,24 @@ import remarkGfm from 'remark-gfm';
 type Props = {
   transactions: Transaction[];
   account: Account | null;
+};
+
+// Helper function to format the AI response
+const formatAiResponse = (response: string): string => {
+  try {
+    const parsed = JSON.parse(response);
+    if (Array.isArray(parsed)) {
+      return parsed.map(item => {
+        const key = Object.keys(item)[0];
+        const value = item[key];
+        // Reconstruct the markdown list item
+        return `${key} ${value}`;
+      }).join('\n');
+    }
+  } catch (e) {
+    // Not a JSON string, or not in the expected format. Return as is.
+  }
+  return response;
 };
 
 export default function SmartSuggestions({ transactions, account }: Props) {
@@ -76,6 +94,8 @@ export default function SmartSuggestions({ transactions, account }: Props) {
     }
   };
 
+  const displaySuggestions = useMemo(() => formatAiResponse(suggestions), [suggestions]);
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -99,7 +119,7 @@ export default function SmartSuggestions({ transactions, account }: Props) {
               </div>
             ) : suggestions ? (
               <div className="text-sm text-muted-foreground leading-relaxed">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{suggestions}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{displaySuggestions}</ReactMarkdown>
               </div>
             ) : (
               <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full">

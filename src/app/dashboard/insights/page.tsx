@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, doc, getDoc, Timestamp, updateDoc } from 'firebase/firestore';
@@ -13,6 +13,25 @@ import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+
+// Helper function to format the AI response
+const formatAiResponse = (response: string): string => {
+  try {
+    const parsed = JSON.parse(response);
+    if (Array.isArray(parsed)) {
+      return parsed.map(item => {
+        const key = Object.keys(item)[0];
+        const value = item[key];
+        // Reconstruct the markdown list item
+        return `${key} ${value}`;
+      }).join('\n');
+    }
+  } catch (e) {
+    // Not a JSON string, or not in the expected format. Return as is.
+  }
+  return response;
+};
+
 
 export default function InsightsPage() {
   const { user } = useAuth();
@@ -113,6 +132,8 @@ export default function InsightsPage() {
     }
   };
 
+  const displayReport = useMemo(() => formatAiResponse(report), [report]);
+
   return (
     <div className="space-y-8">
         <Button variant="outline" onClick={() => router.push('/dashboard')}>
@@ -148,7 +169,7 @@ export default function InsightsPage() {
                                 </div>
                             ) : report ? (
                                 <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
-                                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{report}</ReactMarkdown>
+                                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayReport}</ReactMarkdown>
                                 </div>
                             ) : (
                                 <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full p-8">
