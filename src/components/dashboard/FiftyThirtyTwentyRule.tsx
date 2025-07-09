@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -25,7 +26,19 @@ const WANTS_CATEGORIES = ['Food & Dining', 'Shopping', 'Entertainment', 'Travel'
 const SAVINGS_DEBT_CATEGORIES = ['EMI', 'Investment'];
 
 export default function FiftyThirtyTwentyRule({ transactions }: Props) {
-  const { needs, wants, savingsAndDebt, totalIncome, needsPercentage, wantsPercentage, savingsAndDebtPercentage, remainingSavings } = useMemo(() => {
+  const {
+    needs,
+    wants,
+    savingsAndDebt,
+    totalIncome,
+    needsPercentage,
+    wantsPercentage,
+    savingsAndDebtPercentage,
+    remainingSavings,
+    needsTarget,
+    wantsTarget,
+    savingsTarget,
+  } = useMemo(() => {
     const totalIncome = transactions
       .filter((t) => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
@@ -47,14 +60,18 @@ export default function FiftyThirtyTwentyRule({ transactions }: Props) {
     const totalSavingsAndDebt = savingsAndDebtFromCategories + (remainingSavings > 0 ? remainingSavings : 0);
 
     if (totalIncome === 0) {
-      return { needs: 0, wants: 0, savingsAndDebt: 0, totalIncome: 0, needsPercentage: 0, wantsPercentage: 0, savingsAndDebtPercentage: 0, remainingSavings: 0 };
+      return { needs: 0, wants: 0, savingsAndDebt: 0, totalIncome: 0, needsPercentage: 0, wantsPercentage: 0, savingsAndDebtPercentage: 0, remainingSavings: 0, needsTarget: 0, wantsTarget: 0, savingsTarget: 0 };
     }
 
     const needsPercentage = (needs / totalIncome) * 100;
     const wantsPercentage = (wants / totalIncome) * 100;
     const savingsAndDebtPercentage = (totalSavingsAndDebt / totalIncome) * 100;
+    
+    const needsTarget = totalIncome * 0.5;
+    const wantsTarget = totalIncome * 0.3;
+    const savingsTarget = totalIncome * 0.2;
 
-    return { needs, wants, savingsAndDebt: totalSavingsAndDebt, totalIncome, needsPercentage, wantsPercentage, savingsAndDebtPercentage, remainingSavings };
+    return { needs, wants, savingsAndDebt: totalSavingsAndDebt, totalIncome, needsPercentage, wantsPercentage, savingsAndDebtPercentage, remainingSavings, needsTarget, wantsTarget, savingsTarget };
   }, [transactions]);
   
   if (totalIncome === 0) {
@@ -85,12 +102,12 @@ export default function FiftyThirtyTwentyRule({ transactions }: Props) {
     )
   }
 
-  const RuleItem = ({ title, target, actualPercentage, actualAmount, colorClass, tooltipText }: { title: string, target: number, actualPercentage: number, actualAmount: number, colorClass: string, tooltipText: string }) => (
+  const RuleItem = ({ title, target, targetAmount, actualPercentage, actualAmount, colorClass, tooltipText }: { title: string, target: number, targetAmount: number, actualPercentage: number, actualAmount: number, colorClass: string, tooltipText: string }) => (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
             <span className="font-semibold">{title}</span>
-            <span className="text-sm text-muted-foreground">(Target: {target}%)</span>
+            <span className="text-sm text-muted-foreground">(Target: {formatCurrency(targetAmount)} ({target}%))</span>
         </div>
         <div className="flex items-center gap-2">
             <span className="font-semibold">{formatCurrency(actualAmount)}</span>
@@ -153,6 +170,7 @@ export default function FiftyThirtyTwentyRule({ transactions }: Props) {
         <RuleItem 
             title="Needs"
             target={50}
+            targetAmount={needsTarget}
             actualPercentage={needsPercentage}
             actualAmount={needs}
             colorClass={needsPercentage > 50 ? 'bg-destructive' : 'bg-blue-500'}
@@ -161,17 +179,19 @@ export default function FiftyThirtyTwentyRule({ transactions }: Props) {
         <RuleItem 
             title="Wants"
             target={30}
+            targetAmount={wantsTarget}
             actualPercentage={wantsPercentage}
             actualAmount={wants}
-            colorClass={wantsPercentage > 30 ? 'bg-destructive' : 'bg-amber-500'}
+            colorClass={wantsPercentage > 30 ? 'bg-destructive' : 'bg-blue-500'}
             tooltipText={wantsPercentage > 30 ? `You're over budget on wants.` : `You're within your budget for wants.`}
         />
         <RuleItem 
             title="Savings & Debt"
             target={20}
+            targetAmount={savingsTarget}
             actualPercentage={savingsAndDebtPercentage}
             actualAmount={savingsAndDebt}
-            colorClass={savingsAndDebtPercentage < 20 ? 'bg-yellow-500' : 'bg-emerald-500'}
+            colorClass={savingsAndDebtPercentage < 20 ? 'bg-yellow-500' : 'bg-blue-500'}
             tooltipText={savingsAndDebtPercentage < 20 ? `You're under your savings goal.` : `Great job on saving!`}
         />
         {remainingSavings < 0 && (
