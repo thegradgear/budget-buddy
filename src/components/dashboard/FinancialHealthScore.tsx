@@ -142,7 +142,7 @@ export default function FinancialHealthScore({ transactions, userProfile }: { tr
                         <Sparkles className="mr-2 h-4 w-4" />
                         Recalculate Score
                     </Button>
-                    {scoreData.generatedAt && (
+                    {scoreData && scoreData.generatedAt && (
                         <p className="text-xs text-muted-foreground">Last calculated: {format(new Date(scoreData.generatedAt), "MMM d, yyyy 'at' p")}</p>
                     )}
                 </div>
