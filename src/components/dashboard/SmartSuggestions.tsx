@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { Transaction } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { getSpendingSuggestions } from '@/ai/flows/spending-suggestions';
-import { Lightbulb, Loader2 } from 'lucide-react';
+import { Lightbulb, Loader2, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 type Props = {
   transactions: Transaction[];
@@ -50,7 +51,7 @@ export default function SmartSuggestions({ transactions }: Props) {
     <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle>Smart Suggestions</CardTitle>
-        <CardDescription>Get AI-powered tips to improve your finances.</CardDescription>
+        <CardDescription>Get AI-powered tips for this account.</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow flex flex-col justify-between">
         <div className="flex-grow">
@@ -63,7 +64,7 @@ export default function SmartSuggestions({ transactions }: Props) {
           ) : (
             <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full">
               <Lightbulb className="h-12 w-12 mb-4 text-primary/50" />
-              <p>Click the button to get personalized financial advice.</p>
+              <p>Click the button to get financial advice for this account.</p>
             </div>
           )}
         </div>
@@ -71,6 +72,14 @@ export default function SmartSuggestions({ transactions }: Props) {
           {loading ? 'Analyzing...' : 'Get Suggestions'}
         </Button>
       </CardContent>
+      <CardFooter className="p-2 border-t bg-secondary">
+          <Button variant="link" asChild className="w-full text-xs">
+              <Link href="/dashboard/insights">
+                  Go to AI Insights for a full analysis
+                  <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+          </Button>
+      </CardFooter>
     </Card>
   );
 }

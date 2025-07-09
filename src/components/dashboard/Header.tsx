@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogOut, User as UserIcon, Bell } from 'lucide-react';
+import { LogOut, User as UserIcon, Bell, Lightbulb } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import NotificationBell from './NotificationBell';
 
@@ -72,6 +72,10 @@ export default function Header() {
                 <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
                   <UserIcon className="mr-2 h-4 w-4" />
                   <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/dashboard/insights')}>
+                  <Lightbulb className="mr-2 h-4 w-4" />
+                  <span>AI Insights</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/dashboard/notifications')}>
                   <Bell className="mr-2 h-4 w-4" />
