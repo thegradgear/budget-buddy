@@ -44,11 +44,12 @@ const prompt = ai.definePrompt({
 Analyze the user's transaction history and current budget, which are in Indian Rupees (INR), to provide personalized suggestions on how to optimize their spending and savings.
 
 **Formatting Instructions:**
-- Provide the response as a numbered list.
-- Each item in the list must start with a bolded heading using Markdown syntax (e.g., \`**Food Expenses:**\`).
+- Provide the response as a numbered list in Markdown format.
+- Each item in the list must start with a number (e.g., \`1.\`), followed by a bolded heading (e.g., \`**Food Expenses:**\`).
 - After the heading, provide a concise, actionable suggestion.
 - **Crucially, do not recommend any other budgeting apps or financial tools. The user is already using Budget Buddy.** Instead, encourage them to use Budget Buddy's features (like category tracking or setting savings goals) where relevant.
-- Do not add any introductory or concluding text outside of the numbered list itself.
+- Do not add any introductory or concluding text. Your entire response should be the numbered list itself.
+- Do not wrap the output in a JSON object or any other format.
 
 Transaction History:
 {{transactionHistory}}

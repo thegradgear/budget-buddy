@@ -17,7 +17,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FinancialHealthScore from '@/components/dashboard/FinancialHealthScore';
 import LifeEventPlanner from '@/components/dashboard/LifeEventPlanner';
 
-
 // Helper function to format the AI response
 const formatAiResponse = (response: string): string => {
   try {
@@ -35,7 +34,6 @@ const formatAiResponse = (response: string): string => {
   }
   return response;
 };
-
 
 export default function InsightsPage() {
   const { user } = useAuth();
