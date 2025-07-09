@@ -210,7 +210,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-sm shadow-xl border-border/50">
       <CardHeader className="text-center">
         <div className="mb-4 flex justify-center">
           <Logo />

@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Save } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -127,7 +127,7 @@ export default function ProfilePage() {
 
   if (fetching) {
       return (
-        <div className="flex justify-center items-center h-full">
+        <div className="flex justify-center items-center h-[80vh]">
             <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       )
@@ -135,14 +135,17 @@ export default function ProfilePage() {
 
   return (
     <div className="flex justify-center items-start pt-8">
-      <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <CardTitle>Profile</CardTitle>
-          <CardDescription>Manage your account settings.</CardDescription>
+      <Card className="w-full max-w-2xl relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+        <CardHeader className="relative text-center">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Profile
+            </CardTitle>
+            <CardDescription>Manage your account settings.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative">
           <div className="flex justify-center mb-8">
-            <Avatar className="h-24 w-24 text-3xl">
+            <Avatar className="h-28 w-28 text-4xl border-4 border-background shadow-lg">
                 <AvatarImage src={user?.photoURL ?? undefined} alt={user?.displayName ?? ''} />
                 <AvatarFallback>{getInitials(user?.displayName, user?.email)}</AvatarFallback>
             </Avatar>
@@ -181,9 +184,9 @@ export default function ProfilePage() {
                   </FormItem>
                 )}
               />
-              <div className="flex justify-end">
-                <Button type="submit" disabled={loading}>
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <div className="flex justify-end pt-4">
+                <Button type="submit" disabled={loading} size="lg">
+                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                   Save Changes
                 </Button>
               </div>

@@ -26,7 +26,7 @@ import {
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, CalendarIcon, ArrowLeft } from 'lucide-react';
+import { Loader2, CalendarIcon, ArrowLeft, Send } from 'lucide-react';
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { categorizeTransaction } from '@/ai/flows/categorize-transaction';
@@ -88,19 +88,20 @@ export default function NewTransactionPage() {
     };
 
     return (
-        <div>
+        <div className="space-y-6">
             <Button variant="outline" onClick={() => router.back()} className="mb-4">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Account
             </Button>
-            <Card className="max-w-2xl mx-auto">
-                <CardHeader>
-                    <CardTitle>Add New Transaction</CardTitle>
+            <Card className="max-w-2xl mx-auto relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+                <CardHeader className="relative">
+                    <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Add New Transaction</CardTitle>
                     <CardDescription>Fill in the details for your new transaction.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="relative">
                     <Form {...form}>
-                    <form onSubmit={form.handleSubmit(handleAddTransaction)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(handleAddTransaction)} className="space-y-6">
                         <FormField
                         control={form.control}
                         name="description"
@@ -187,8 +188,8 @@ export default function NewTransactionPage() {
                         )}
                         />
                         <div className="flex justify-end pt-4">
-                            <Button type="submit" disabled={loading}>
-                                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            <Button type="submit" disabled={loading} size="lg">
+                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                                 Save Transaction
                             </Button>
                         </div>

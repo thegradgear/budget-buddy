@@ -212,134 +212,138 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
     };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div>
-            <CardTitle>Transaction Log</CardTitle>
-            <CardDescription>Search, filter, and sort all your income and expenses.</CardDescription>
-        </div>
-        <Popover open={exportPopoverOpen} onOpenChange={setExportPopoverOpen}>
-            <PopoverTrigger asChild>
-                <Button variant="outline" size="icon">
-                    <Upload className="h-4 w-4" />
-                    <span className="sr-only">Export Transactions</span>
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80" align="end">
-                <div className="space-y-4 p-2">
-                    <p className="text-sm font-medium">Export as CSV</p>
-                    <div className="space-y-2">
-                        <Button variant="ghost" className="w-full justify-start" onClick={() => handleExport('current-month')}>
-                            This Month's Report
-                        </Button>
-                        <Button variant="ghost" className="w-full justify-start" onClick={() => handleExport('all-time')}>
-                            All Transactions
-                        </Button>
-                    </div>
-                    <Separator />
-                    <div className="space-y-2">
-                        <p className="text-sm font-medium">Custom Date Range</p>
-                        <div className="grid gap-2">
-                            <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                id="date"
-                                variant={"outline"}
-                                className={cn(
-                                    "w-full justify-start text-left font-normal",
-                                    !customDateRange && "text-muted-foreground"
-                                )}
-                                >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {customDateRange?.from ? (
-                                    customDateRange.to ? (
-                                    <>
-                                        {format(customDateRange.from, "LLL dd, y")} -{" "}
-                                        {format(customDateRange.to, "LLL dd, y")}
-                                    </>
-                                    ) : (
-                                    format(customDateRange.from, "LLL dd, y")
-                                    )
-                                ) : (
-                                    <span>Pick a date range</span>
-                                )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="end">
-                                <Calendar
-                                initialFocus
-                                mode="range"
-                                defaultMonth={customDateRange?.from}
-                                selected={customDateRange}
-                                onSelect={setCustomDateRange}
-                                numberOfMonths={2}
-                                />
-                            </PopoverContent>
-                            </Popover>
+    <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+      <CardHeader className="relative flex flex-col gap-4">
+        <div className="flex flex-row items-start justify-between">
+            <div>
+                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Transaction Log
+                </CardTitle>
+                <CardDescription>Search, filter, and sort all your income and expenses.</CardDescription>
+            </div>
+            <Popover open={exportPopoverOpen} onOpenChange={setExportPopoverOpen}>
+                <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon">
+                        <Upload className="h-4 w-4" />
+                        <span className="sr-only">Export Transactions</span>
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80" align="end">
+                    <div className="space-y-4 p-2">
+                        <p className="text-sm font-medium">Export as CSV</p>
+                        <div className="space-y-2">
+                            <Button variant="ghost" className="w-full justify-start" onClick={() => handleExport('current-month')}>
+                                This Month's Report
+                            </Button>
+                            <Button variant="ghost" className="w-full justify-start" onClick={() => handleExport('all-time')}>
+                                All Transactions
+                            </Button>
                         </div>
-                        <Button
-                            className="w-full"
-                            disabled={!customDateRange?.from || !customDateRange?.to}
-                            onClick={() => handleExport('custom', customDateRange)}
-                        >
-                            Download Custom Report
-                        </Button>
+                        <Separator />
+                        <div className="space-y-2">
+                            <p className="text-sm font-medium">Custom Date Range</p>
+                            <div className="grid gap-2">
+                                <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                    id="date"
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !customDateRange && "text-muted-foreground"
+                                    )}
+                                    >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {customDateRange?.from ? (
+                                        customDateRange.to ? (
+                                        <>
+                                            {format(customDateRange.from, "LLL dd, y")} -{" "}
+                                            {format(customDateRange.to, "LLL dd, y")}
+                                        </>
+                                        ) : (
+                                        format(customDateRange.from, "LLL dd, y")
+                                        )
+                                    ) : (
+                                        <span>Pick a date range</span>
+                                    )}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="end">
+                                    <Calendar
+                                    initialFocus
+                                    mode="range"
+                                    defaultMonth={customDateRange?.from}
+                                    selected={customDateRange}
+                                    onSelect={setCustomDateRange}
+                                    numberOfMonths={2}
+                                    />
+                                </PopoverContent>
+                                </Popover>
+                            </div>
+                            <Button
+                                className="w-full"
+                                disabled={!customDateRange?.from || !customDateRange?.to}
+                                onClick={() => handleExport('custom', customDateRange)}
+                            >
+                                Download Custom Report
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            </PopoverContent>
-        </Popover>
+                </PopoverContent>
+            </Popover>
+        </div>
+        <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="w-full md:w-auto md:flex-1">
+                <Input
+                    placeholder="Search descriptions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full md:max-w-xs"
+                />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as 'all' | 'income' | 'expense')}>
+                    <SelectTrigger className="w-full sm:w-[130px]">
+                        <SelectValue placeholder="Filter by type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="income">Income</SelectItem>
+                        <SelectItem value="expense">Expense</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {uniqueCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="w-full sm:w-auto justify-start">
+                        <ArrowUpDown className="mr-2 h-4 w-4" />
+                        <span className="truncate">{getSortLabel()}</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setSortConfig({ key: 'date', direction: 'desc' })}>Date: Newest</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setSortConfig({ key: 'date', direction: 'asc' })}>Date: Oldest</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setSortConfig({ key: 'amount', direction: 'desc' })}>Amount: High to Low</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setSortConfig({ key: 'amount', direction: 'asc' })}>Amount: Low to High</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <Button variant="ghost" onClick={handleClearFilters} size="icon" title="Clear Filters">
+                    <RotateCcw className="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
       </CardHeader>
       
-      <div className="flex flex-col md:flex-row gap-4 items-center px-4 md:px-6 pb-4 border-b">
-        <div className="w-full md:w-auto md:flex-1">
-            <Input
-                placeholder="Search descriptions..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full md:max-w-xs"
-            />
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-            <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as 'all' | 'income' | 'expense')}>
-                <SelectTrigger className="w-full sm:w-[130px]">
-                    <SelectValue placeholder="Filter by type" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="income">Income</SelectItem>
-                    <SelectItem value="expense">Expense</SelectItem>
-                </SelectContent>
-            </Select>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Filter by category" />
-                </SelectTrigger>
-                <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {uniqueCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-                </SelectContent>
-            </Select>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full sm:w-auto justify-start">
-                    <ArrowUpDown className="mr-2 h-4 w-4" />
-                    <span className="truncate">{getSortLabel()}</span>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setSortConfig({ key: 'date', direction: 'desc' })}>Date: Newest</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortConfig({ key: 'date', direction: 'asc' })}>Date: Oldest</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortConfig({ key: 'amount', direction: 'desc' })}>Amount: High to Low</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortConfig({ key: 'amount', direction: 'asc' })}>Amount: Low to High</DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-            <Button variant="ghost" onClick={handleClearFilters} size="icon" title="Clear Filters">
-                <RotateCcw className="h-4 w-4" />
-            </Button>
-        </div>
-      </div>
-
-      <CardContent className="p-0">
+      <CardContent className="relative p-0">
         {/* Desktop View */}
         <div className='hidden md:block min-h-[620px] px-6'>
             <Table>
@@ -356,7 +360,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
             <TableBody>
                 {paginatedTransactions.length > 0 ? (
                 paginatedTransactions.map((t) => (
-                    <TableRow key={t.id}>
+                    <TableRow key={t.id} className="hover:bg-white/5 dark:hover:bg-black/5">
                     <TableCell className="font-medium">{t.description}</TableCell>
                     <TableCell>
                         <span className={cn('px-2.5 py-0.5 text-xs font-semibold rounded-full capitalize', {
@@ -406,11 +410,11 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
         </div>
 
         {/* Mobile View */}
-        <div className="md:hidden p-6 min-h-[500px] flex flex-col">
+        <div className="md:hidden p-4 min-h-[500px] flex flex-col">
             <div className="space-y-4 flex-grow">
                 {paginatedTransactions.length > 0 ? (
                     paginatedTransactions.map((t) => (
-                        <Card key={t.id} className="p-4 flex justify-between items-start">
+                        <Card key={t.id} className="p-4 flex justify-between items-start bg-white/30 dark:bg-slate-800/30 backdrop-blur-sm border border-slate-200/30 dark:border-slate-700/30 hover:shadow-md transition-shadow">
                             <div className="flex-1 space-y-2">
                                 <p className="font-medium truncate">{t.description}</p>
                                 <div className='flex flex-wrap gap-2 items-center'>
@@ -461,7 +465,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
         </div>
       </CardContent>
       {totalPages > 1 && (
-        <CardFooter className="flex items-center justify-between border-t px-6 py-4">
+        <CardFooter className="relative flex items-center justify-between border-t border-border/50 px-6 py-4">
             <div className="text-sm text-muted-foreground">
                 Page {currentPage} of {totalPages}
             </div>

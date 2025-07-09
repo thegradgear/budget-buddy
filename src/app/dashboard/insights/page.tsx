@@ -7,7 +7,7 @@ import { collection, getDocs, query, doc, getDoc, Timestamp, updateDoc } from 'f
 import { Transaction, UserProfile, Account } from '@/types';
 import { Button } from '@/components/ui/button';
 import { getSpendingSuggestions } from '@/ai/flows/spending-suggestions';
-import { Lightbulb, Loader2, ArrowLeft } from 'lucide-react';
+import { Lightbulb, Loader2, ArrowLeft, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
@@ -144,9 +144,13 @@ export default function InsightsPage() {
         <div className="space-y-8">
             <div className="max-w-4xl mx-auto text-center space-y-2">
                 <div className="inline-flex items-center justify-center gap-3">
-                    <Lightbulb className="h-8 w-8 text-primary" />
-                    <h1 className="text-3xl font-bold tracking-tight">AI-Powered Financial Insights</h1>
+                    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 text-white shadow-lg">
+                      <Lightbulb className="h-8 w-8" />
+                    </div>
                 </div>
+                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  AI-Powered Financial Insights
+                </h1>
                 <p className="text-lg text-muted-foreground">
                     Get a holistic view of your financial habits. Our AI will analyze your transactions across all accounts to provide personalized advice.
                 </p>
@@ -160,26 +164,30 @@ export default function InsightsPage() {
                     </div>
                 ) : (
                     <>
-                        <div className="flex-grow min-h-[200px] bg-secondary p-6 rounded-lg">
-                            {loadingReport ? (
-                                <div className="flex flex-col items-center justify-center h-full text-center">
-                                    <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                                    <p className="text-foreground">Analyzing your spending habits...</p>
-                                    <p className="text-xs text-muted-foreground mt-1">This may take a moment.</p>
-                                </div>
-                            ) : report ? (
-                                <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
-                                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayReport}</ReactMarkdown>
-                                </div>
-                            ) : (
-                                <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full p-8">
-                                    <Lightbulb className="h-12 w-12 mb-4 text-primary/30" />
-                                    <h3 className="font-semibold text-lg text-foreground mb-2">Ready for your financial check-up?</h3>
-                                    <p className="max-w-md">Click the button below to get personalized advice based on your entire transaction history.</p>
-                                </div>
-                            )}
+                        <div className="flex-grow min-h-[300px] relative overflow-hidden rounded-xl border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 p-6">
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+                            <div className="relative h-full">
+                              {loadingReport ? (
+                                  <div className="flex flex-col items-center justify-center h-full text-center">
+                                      <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                                      <p className="text-foreground">Analyzing your spending habits...</p>
+                                      <p className="text-xs text-muted-foreground mt-1">This may take a moment.</p>
+                                  </div>
+                              ) : report ? (
+                                  <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-headings:font-semibold prose-strong:font-semibold">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayReport}</ReactMarkdown>
+                                  </div>
+                              ) : (
+                                  <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full p-8">
+                                      <Lightbulb className="h-12 w-12 mb-4 text-primary/30" />
+                                      <h3 className="font-semibold text-lg text-foreground mb-2">Ready for your financial check-up?</h3>
+                                      <p className="max-w-md">Click the button below to get personalized advice based on your entire transaction history.</p>
+                                  </div>
+                              )}
+                            </div>
                         </div>
                         <Button onClick={handleGenerateReport} disabled={loadingReport || allTransactions.length === 0} className="mt-6 w-full sm:w-auto self-center" size="lg">
+                            {loadingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                             {loadingReport ? 'Analyzing...' : report ? 'Regenerate Full Financial Report' : 'Generate Full Financial Report'}
                         </Button>
                     </>

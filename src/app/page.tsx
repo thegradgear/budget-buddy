@@ -64,7 +64,7 @@ export default function Home() {
               </div>
             </div>
             <div className="mt-8 sm:mt-12 md:mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-              <Card className="h-full">
+              <Card className="h-full transition-all hover:shadow-lg hover:-translate-y-1">
                 <CardHeader className="flex flex-row items-center gap-4 pb-4">
                   <div className="bg-primary-light p-3 rounded-full flex-shrink-0">
                     <IndianRupee className="h-6 w-6 text-primary" />
@@ -77,7 +77,7 @@ export default function Home() {
                   </p>
                 </CardContent>
               </Card>
-              <Card className="h-full">
+              <Card className="h-full transition-all hover:shadow-lg hover:-translate-y-1">
                 <CardHeader className="flex flex-row items-center gap-4 pb-4">
                   <div className="bg-primary-light p-3 rounded-full flex-shrink-0">
                     <BarChart className="h-6 w-6 text-primary" />
@@ -90,7 +90,7 @@ export default function Home() {
                   </p>
                 </CardContent>
               </Card>
-              <Card className="h-full sm:col-span-2 lg:col-span-1">
+              <Card className="h-full sm:col-span-2 lg:col-span-1 transition-all hover:shadow-lg hover:-translate-y-1">
                 <CardHeader className="flex flex-row items-center gap-4 pb-4">
                   <div className="bg-primary-light p-3 rounded-full flex-shrink-0">
                     <Zap className="h-6 w-6 text-primary" />
@@ -175,9 +175,9 @@ export default function Home() {
               </div>
             </div>
             <div className="mt-8 sm:mt-12 md:mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-              <Card className="h-full">
+              <Card className="h-full transition-all hover:shadow-lg hover:-translate-y-1">
                 <CardContent className="pt-6">
-                  <Quote className="h-8 w-8 text-primary-light mb-4" />
+                  <Quote className="h-8 w-8 text-primary/20 dark:text-primary/30 mb-4" />
                   <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                     "Budget Buddy has been a game-changer for my finances. I finally feel in control of my money."
                   </p>
@@ -193,9 +193,9 @@ export default function Home() {
                   </div>
                 </CardFooter>
               </Card>
-              <Card className="h-full">
+              <Card className="h-full transition-all hover:shadow-lg hover:-translate-y-1">
                 <CardContent className="pt-6">
-                  <Quote className="h-8 w-8 text-primary-light mb-4" />
+                  <Quote className="h-8 w-8 text-primary/20 dark:text-primary/30 mb-4" />
                   <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                     "The AI suggestions are incredibly helpful. It's like having a personal finance coach in my pocket."
                   </p>
@@ -211,9 +211,9 @@ export default function Home() {
                   </div>
                 </CardFooter>
               </Card>
-              <Card className="h-full sm:col-span-2 lg:col-span-1">
+              <Card className="h-full sm:col-span-2 lg:col-span-1 transition-all hover:shadow-lg hover:-translate-y-1">
                 <CardContent className="pt-6">
-                  <Quote className="h-8 w-8 text-primary-light mb-4" />
+                  <Quote className="h-8 w-8 text-primary/20 dark:text-primary/30 mb-4" />
                   <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                     "I've tried other budgeting apps, but this is the first one that has actually stuck. So simple and effective!"
                   </p>
@@ -260,15 +260,15 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             <div className="flex flex-col gap-4 sm:col-span-2 lg:col-span-1">
               <Logo className="text-white" />
-              <p className="text-blue-200/70 text-sm leading-relaxed">Your financial co-pilot.</p>
+              <p className="text-primary-foreground/70 text-sm leading-relaxed">Your financial co-pilot.</p>
               <div className="flex gap-4">
-                <Link href="#" className="text-blue-200/70 hover:text-white transition-colors">
+                <Link href="#" className="text-primary-foreground/70 hover:text-white transition-colors">
                   <Twitter className="h-5 w-5" />
                 </Link>
-                <Link href="#" className="text-blue-200/70 hover:text-white transition-colors">
+                <Link href="#" className="text-primary-foreground/70 hover:text-white transition-colors">
                   <Facebook className="h-5 w-5" />
                 </Link>
-                <Link href="#" className="text-blue-200/70 hover:text-white transition-colors">
+                <Link href="#" className="text-primary-foreground/70 hover:text-white transition-colors">
                   <Linkedin className="h-5 w-5" />
                 </Link>
               </div>
@@ -277,17 +277,17 @@ export default function Home() {
               <h4 className="font-semibold text-white text-base sm:text-lg">Product</h4>
               <ul className="space-y-2 sm:space-y-3">
                 <li>
-                  <Link href="#features" className="text-blue-200/70 hover:text-white text-sm transition-colors">
+                  <Link href="#features" className="text-primary-foreground/70 hover:text-white text-sm transition-colors">
                     Features
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-blue-200/70 hover:text-white text-sm transition-colors">
+                  <Link href="#" className="text-primary-foreground/70 hover:text-white text-sm transition-colors">
                     Pricing
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-blue-200/70 hover:text-white text-sm transition-colors">
+                  <Link href="#" className="text-primary-foreground/70 hover:text-white text-sm transition-colors">
                     Integrations
                   </Link>
                 </li>
@@ -297,17 +297,17 @@ export default function Home() {
               <h4 className="font-semibold text-white text-base sm:text-lg">Company</h4>
               <ul className="space-y-2 sm:space-y-3">
                 <li>
-                  <Link href="#" className="text-blue-200/70 hover:text-white text-sm transition-colors">
+                  <Link href="#" className="text-primary-foreground/70 hover:text-white text-sm transition-colors">
                     About Us
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-blue-200/70 hover:text-white text-sm transition-colors">
+                  <Link href="#" className="text-primary-foreground/70 hover:text-white text-sm transition-colors">
                     Careers
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-blue-200/70 hover:text-white text-sm transition-colors">
+                  <Link href="#" className="text-primary-foreground/70 hover:text-white text-sm transition-colors">
                     Contact
                   </Link>
                 </li>
@@ -317,19 +317,19 @@ export default function Home() {
               <h4 className="font-semibold text-white text-base sm:text-lg">Legal</h4>
               <ul className="space-y-2 sm:space-y-3">
                 <li>
-                  <Link href="#" className="text-blue-200/70 hover:text-white text-sm transition-colors">
+                  <Link href="#" className="text-primary-foreground/70 hover:text-white text-sm transition-colors">
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-blue-200/70 hover:text-white text-sm transition-colors">
+                  <Link href="#" className="text-primary-foreground/70 hover:text-white text-sm transition-colors">
                     Terms of Service
                   </Link>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="mt-6 sm:mt-8 border-t border-slate-200/20 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-blue-200/70">
+          <div className="mt-6 sm:mt-8 border-t border-slate-200/20 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-primary-foreground/70">
             &copy; {new Date().getFullYear()} Budget Buddy. All rights reserved.
           </div>
         </div>
