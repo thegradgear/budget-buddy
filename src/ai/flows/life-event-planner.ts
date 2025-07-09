@@ -77,10 +77,10 @@ User's Monthly Income: ₹{{monthlyIncome}}
 2.2. Calculate the minimum number of months ('n') required to reach the 'targetAmount' with this affordable savings amount. Use the standard formula to solve for n: n = ln((FV*r/P) + 1) / ln(1+r).
 2.3. Convert the total months 'n' into years and months (e.g., 66 months = 5 years and 6 months).
 2.4. Populate the 'feasibilityAnalysis' object:
-    - `requiredMonthlySavings`: The value calculated in step 1.2.
-    - `maxAffordableSavings`: 50% of the user's income.
-    - `minimumFeasibleTimeframe`: The string calculated in step 2.3.
-    - `calculationBreakdown`: Provide a clear, step-by-step explanation of the calculation. Explain the formulas used, the assumed interest rate, and how you arrived at the new timeframe. This is crucial for user understanding.
+    - 'requiredMonthlySavings': The value calculated in step 1.2.
+    - 'maxAffordableSavings': 50% of the user's income.
+    - 'minimumFeasibleTimeframe': The string calculated in step 2.3.
+    - 'calculationBreakdown': Provide a clear, step-by-step explanation of the calculation. Explain the formulas used, the assumed interest rate, and how you arrived at the new timeframe. This is crucial for user understanding.
 2.5. Generate an appropriate 'planTitle' (e.g., "Feasibility Report for Your Goal") and a 'summary' explaining the situation and presenting the new timeframe as an achievable alternative.
 2.6. STOP here. Do not generate 'monthlySavings' or 'investmentSuggestions' fields for unfeasible plans.
 
