@@ -41,7 +41,7 @@ export default function InsightsPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [report, setReport] = useState('');
+  const [reportData, setReportData] = useState<{ report: string; generatedAt: string; } | null>(null);
   const [loadingReport, setLoadingReport] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
@@ -60,7 +60,7 @@ export default function InsightsPage() {
           const data = userDoc.data() as UserProfile;
           setUserProfile(data);
           if (data.aiFinancialReport) {
-            setReport(data.aiFinancialReport);
+            setReportData(data.aiFinancialReport);
           }
         }
 
@@ -103,7 +103,7 @@ export default function InsightsPage() {
     if (!user || !db) return;
 
     setLoadingReport(true);
-    setReport('');
+    setReportData(null);
     try {
       const transactionHistory = allTransactions
         .map(t => `${format(new Date(t.date), 'yyyy-MM-dd')}: ${t.type === 'expense' ? '-' : '+'}₹${t.amount.toFixed(2)} for ${t.description}`)
@@ -116,12 +116,15 @@ export default function InsightsPage() {
         currentBudget: budget,
       });
       
-      const newReport = result.suggestions;
-      setReport(newReport);
+      const newReportData = {
+        report: result.suggestions,
+        generatedAt: new Date().toISOString()
+      };
+      setReportData(newReportData);
 
       // Save report to Firebase
       const userDocRef = doc(db, 'users', user.uid);
-      await updateDoc(userDocRef, { aiFinancialReport: newReport });
+      await updateDoc(userDocRef, { aiFinancialReport: newReportData });
 
     } catch (error) {
       console.error(error);
@@ -135,7 +138,7 @@ export default function InsightsPage() {
     }
   };
 
-  const displayReport = useMemo(() => formatAiResponse(report), [report]);
+  const displayReport = useMemo(() => formatAiResponse(reportData?.report || ''), [reportData]);
 
   return (
     <div className="space-y-8">
@@ -177,8 +180,8 @@ export default function InsightsPage() {
                                 Health Score
                             </TabsTrigger>
                         </TabsList>
-                        <TabsContent value="report">
-                          <div className="flex-grow min-h-[300px] relative overflow-hidden rounded-xl border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 p-6">
+                        <TabsContent value="report" className="flex flex-col items-center">
+                          <div className="flex-grow min-h-[300px] relative overflow-hidden rounded-xl border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 p-6 w-full">
                               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
                               <div className="relative h-full">
                                 {loadingReport ? (
@@ -187,7 +190,7 @@ export default function InsightsPage() {
                                         <p className="text-foreground">Analyzing your spending habits...</p>
                                         <p className="text-xs text-muted-foreground mt-1">This may take a moment.</p>
                                     </div>
-                                ) : report ? (
+                                ) : reportData ? (
                                     <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-headings:font-semibold prose-strong:font-semibold">
                                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayReport}</ReactMarkdown>
                                     </div>
@@ -200,10 +203,17 @@ export default function InsightsPage() {
                                 )}
                               </div>
                           </div>
-                          <Button onClick={handleGenerateReport} disabled={loadingReport || allTransactions.length === 0} className="mt-6 w-full sm:w-auto self-center mx-auto flex" size="lg">
-                              {loadingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                              {loadingReport ? 'Analyzing...' : report ? 'Regenerate Full Financial Report' : 'Generate Full Financial Report'}
-                          </Button>
+                          <div className="flex flex-col items-center mt-6 gap-2">
+                            <Button onClick={handleGenerateReport} disabled={loadingReport || allTransactions.length === 0} className="w-full sm:w-auto" size="lg">
+                                {loadingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                                {loadingReport ? 'Analyzing...' : reportData ? 'Regenerate Full Financial Report' : 'Generate Full Financial Report'}
+                            </Button>
+                            {reportData && (
+                              <p className="text-xs text-muted-foreground">
+                                Last generated: {format(new Date(reportData.generatedAt), "MMM d, yyyy 'at' p")}
+                              </p>
+                            )}
+                          </div>
                         </TabsContent>
                         <TabsContent value="health-score">
                             <FinancialHealthScore 

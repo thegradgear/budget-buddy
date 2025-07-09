@@ -12,7 +12,10 @@ export type Account = {
   name: string;
   type: 'Savings' | 'Checking' | 'Credit Card' | 'Cash';
   isActive?: boolean;
-  aiSuggestions?: string;
+  aiSuggestions?: {
+    suggestions: string;
+    generatedAt: string;
+  };
 };
 
 export type Notification = {
@@ -40,6 +43,9 @@ export type UserProfile = {
   lastNotification90Sent?: string; // e.g. "2024-07"
   lastNotification100Sent?: string; // e.g. "2024-07"
   lastMonthlySummarySent?: string; // e.g. "2024-07"
-  aiFinancialReport?: string;
+  aiFinancialReport?: {
+    report: string;
+    generatedAt: string;
+  };
   financialHealthScore?: FinancialHealthScore;
 }

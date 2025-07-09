@@ -40,16 +40,16 @@ const formatAiResponse = (response: string): string => {
 };
 
 export default function SmartSuggestions({ transactions, account }: Props) {
-  const [suggestions, setSuggestions] = useState('');
+  const [suggestionsData, setSuggestionsData] = useState<{ suggestions: string; generatedAt: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
   useEffect(() => {
     if (account?.aiSuggestions) {
-      setSuggestions(account.aiSuggestions);
+      setSuggestionsData(account.aiSuggestions);
     } else {
-      setSuggestions('');
+      setSuggestionsData(null);
     }
   }, [account]);
 
@@ -60,7 +60,7 @@ export default function SmartSuggestions({ transactions, account }: Props) {
     }
 
     setLoading(true);
-    setSuggestions('');
+    setSuggestionsData(null);
     try {
       const transactionHistory = transactions
         .map(t => `${format(new Date(t.date), 'yyyy-MM-dd')}: ${t.type === 'expense' ? '-' : '+'}₹${t.amount.toFixed(2)} for ${t.description}`)
@@ -73,13 +73,16 @@ export default function SmartSuggestions({ transactions, account }: Props) {
         currentBudget: totalIncome, // Simplified: uses total income as budget reference
       });
 
-      const newSuggestions = result.suggestions;
-      setSuggestions(newSuggestions);
+      const newSuggestionsData = {
+        suggestions: result.suggestions,
+        generatedAt: new Date().toISOString()
+      };
+      setSuggestionsData(newSuggestionsData);
 
       // Save to Firebase
       const accountDocRef = doc(db, 'users', user.uid, 'accounts', account.id);
       await updateDoc(accountDocRef, {
-        aiSuggestions: newSuggestions
+        aiSuggestions: newSuggestionsData
       });
 
     } catch (error) {
@@ -94,7 +97,7 @@ export default function SmartSuggestions({ transactions, account }: Props) {
     }
   };
 
-  const displaySuggestions = useMemo(() => formatAiResponse(suggestions), [suggestions]);
+  const displaySuggestions = useMemo(() => formatAiResponse(suggestionsData?.suggestions || ''), [suggestionsData]);
 
   return (
     <Card className="h-full flex flex-col">
@@ -117,7 +120,7 @@ export default function SmartSuggestions({ transactions, account }: Props) {
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ) : suggestions ? (
+            ) : suggestionsData ? (
               <div className="text-sm text-muted-foreground leading-relaxed">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{displaySuggestions}</ReactMarkdown>
               </div>
@@ -129,10 +132,16 @@ export default function SmartSuggestions({ transactions, account }: Props) {
             )}
           </ScrollArea>
         </div>
-        <div className="mt-4 shrink-0">
+        <div className="mt-4 shrink-0 flex flex-col items-center gap-2">
             <Button onClick={handleGetSuggestions} disabled={loading || transactions.length === 0} className="w-full">
-            {loading ? 'Analyzing...' : suggestions ? 'Regenerate Suggestions' : 'Get Suggestions'}
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              {loading ? 'Analyzing...' : suggestionsData ? 'Regenerate Suggestions' : 'Get Suggestions'}
             </Button>
+            {suggestionsData && (
+              <p className="text-xs text-muted-foreground">
+                Last generated: {format(new Date(suggestionsData.generatedAt), "MMM d, yyyy 'at' p")}
+              </p>
+            )}
         </div>
       </CardContent>
     </Card>
