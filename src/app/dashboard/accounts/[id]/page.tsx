@@ -151,7 +151,11 @@ export default function AccountDetailsPage() {
       </div>
       
       <>
-        <AccountOverview transactions={transactions} />
+        <AccountOverview
+          transactions={transactions}
+          title="Account Snapshot"
+          description={`A summary of financial activity for your ${account?.name || '...'} account.`}
+        />
         <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8">
           <SpendingChart transactions={transactions} />
           <SmartSuggestions transactions={transactions} account={account} />

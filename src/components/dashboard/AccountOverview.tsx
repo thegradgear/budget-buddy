@@ -4,9 +4,15 @@ import { TrendingUp, TrendingDown, Wallet, BarChart } from "lucide-react";
 
 type Props = {
   transactions: Transaction[];
+  title?: string;
+  description?: string;
 };
 
-export default function AccountOverview({ transactions }: Props) {
+export default function AccountOverview({ 
+  transactions, 
+  title = "Overall Financial Snapshot", 
+  description = "A quick summary of your financial activity across all accounts." 
+}: Props) {
   const totalIncome = transactions
     .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -34,10 +40,10 @@ export default function AccountOverview({ transactions }: Props) {
                 </div>
                 <div>
                     <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Overall Financial Snapshot
+                        {title}
                     </CardTitle>
                     <CardDescription className="text-sm text-muted-foreground mt-1">
-                        A quick summary of your financial activity across all accounts.
+                        {description}
                     </CardDescription>
                 </div>
             </div>
