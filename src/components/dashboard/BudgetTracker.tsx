@@ -8,11 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Pencil, Save } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Pencil, Save, Wallet, TrendingDown, TrendingUp, AlertTriangle, Target, CheckCircle, DollarSign, Calendar, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { UserProfile } from '@/types';
 import { checkBudgetAndCreateNotifications } from '@/lib/notifications';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -116,79 +118,329 @@ export default function BudgetTracker() {
 
     const progressColorClass = useMemo(() => {
         const percentage = (expenses / (budget || 1)) * 100;
-        if (percentage > 90) return 'bg-destructive';
-        if (percentage > 75) return 'bg-yellow-500';
-        return 'bg-primary';
+        if (percentage > 90) return 'bg-gradient-to-r from-red-500 to-red-600';
+        if (percentage > 75) return 'bg-gradient-to-r from-yellow-500 to-orange-500';
+        return 'bg-gradient-to-r from-blue-500 to-blue-600';
     }, [expenses, budget]);
+
+    const getBudgetStatus = () => {
+        if (budget === null || budget <= 0) return { status: 'none', message: 'No Budget Set' };
+        const percentage = (expenses / budget) * 100;
+        if (percentage > 100) return { status: 'critical', message: 'Over Budget' };
+        if (percentage > 90) return { status: 'warning', message: 'Almost Exceeded' };
+        if (percentage > 75) return { status: 'caution', message: 'High Usage' };
+        return { status: 'good', message: 'On Track' };
+    };
+
+    const remainingBudget = budget ? budget - expenses : 0;
+    const status = getBudgetStatus();
 
     const renderContent = () => {
         if (loading) {
             return (
-                <div className="h-[78px] flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin" />
+                <div className="h-[200px] flex items-center justify-center">
+                    <div className="space-y-4 text-center">
+                        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/10 mx-auto animate-pulse">
+                            <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">Loading your budget...</p>
+                    </div>
                 </div>
-            )
+            );
         }
 
         if (isEditing) {
             return (
-                <div className="space-y-4 pt-2">
-                    <p className="text-sm text-muted-foreground">Enter your total budget for the month.</p>
-                    <div className="flex items-center gap-2">
-                        <Input 
-                            type="number" 
-                            value={newBudget}
-                            onChange={(e) => setNewBudget(e.target.value)}
-                            className="h-9"
-                            placeholder="e.g., 50000"
-                        />
-                        <Button onClick={handleSaveBudget} disabled={isSaving} size="sm">
-                           {isSaving ? <Loader2 className="h-4 w-4 animate-spin"/> : <Save className="h-4 w-4" />}
-                           Save
-                        </Button>
-                        { budget !== null && 
-                            <Button variant="ghost" size="sm" onClick={() => { setIsEditing(false); setNewBudget(String(budget ?? ''))}} disabled={isSaving}>
-                                Cancel
-                            </Button>
-                        }
+                <div className="relative p-6 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50">
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/10">
+                                <Target className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-lg">Set Monthly Budget</h3>
+                                <p className="text-sm text-muted-foreground">Enter your total budget for the month</p>
+                            </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    type="number" 
+                                    value={newBudget}
+                                    onChange={(e) => setNewBudget(e.target.value)}
+                                    className="pl-10 h-12 text-lg border-2 focus:border-blue-500 transition-colors"
+                                    placeholder="e.g., 50,000"
+                                />
+                            </div>
+                            
+                            <div className="flex items-center gap-3">
+                                <Button onClick={handleSaveBudget} disabled={isSaving} className="flex-1 h-12">
+                                    {isSaving ? (
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                    ) : (
+                                        <Save className="h-4 w-4 mr-2" />
+                                    )}
+                                    Save Budget
+                                </Button>
+                                
+                                {budget !== null && (
+                                    <Button 
+                                        variant="outline" 
+                                        onClick={() => { 
+                                            setIsEditing(false); 
+                                            setNewBudget(String(budget ?? ''));
+                                        }} 
+                                        disabled={isSaving}
+                                        className="px-6 h-12"
+                                    >
+                                        Cancel
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            )
+            );
         }
         
         if (budget !== null && budget > 0) {
             return (
-                <div className="space-y-3 pt-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span className="font-semibold text-foreground">{formatCurrency(expenses)}</span>
-                        <span>of</span>
-                        <span>{formatCurrency(budget)}</span>
-                        <span>spent</span>
-                        <Button onClick={() => setIsEditing(true)} variant="ghost" size="icon" className="h-6 w-6 ml-1">
-                            <Pencil className="h-3 w-3" />
-                        </Button>
+                <div className="space-y-6">
+                    {/* Budget Overview */}
+                    <div className="relative p-6 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 hover:shadow-lg transition-all duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-xl opacity-50" />
+                        
+                        <div className="relative space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10">
+                                        <Wallet className="h-6 w-6 text-blue-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-xl">Budget Overview</h3>
+                                        <p className="text-sm text-muted-foreground">Current month spending</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-3">
+                                    <Badge 
+                                        variant={status.status === 'good' ? 'default' : status.status === 'critical' ? 'destructive' : 'secondary'} 
+                                        className={`px-3 py-1 text-sm font-medium ${
+                                            status.status === 'good' ? 'bg-emerald-500/10 text-emerald-700 border-emerald-200' :
+                                            status.status === 'critical' ? 'bg-red-500/10 text-red-700 border-red-200' :
+                                            'bg-yellow-500/10 text-yellow-700 border-yellow-200'
+                                        }`}
+                                    >
+                                        {status.message}
+                                    </Badge>
+                                    <Button 
+                                        onClick={() => setIsEditing(true)} 
+                                        variant="ghost" 
+                                        size="sm"
+                                        className="h-8 w-8 p-0 hover:bg-blue-500/10"
+                                    >
+                                        <Pencil className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Amount Display */}
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <TrendingDown className="h-4 w-4" />
+                                        <span>Spent</span>
+                                    </div>
+                                    <div className="text-2xl font-bold text-red-600">
+                                        {formatCurrency(expenses)}
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <TrendingUp className="h-4 w-4" />
+                                        <span>Remaining</span>
+                                    </div>
+                                    <div className={`text-2xl font-bold ${remainingBudget >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                        {formatCurrency(Math.abs(remainingBudget))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Progress Bar */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-muted-foreground">Budget Progress</span>
+                                    <span className="font-medium">{progressPercentage.toFixed(1)}% used</span>
+                                </div>
+                                
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger className="w-full">
+                                            <div className="relative">
+                                                <Progress 
+                                                    value={Math.min(progressPercentage, 100)} 
+                                                    className="h-4 bg-slate-200 dark:bg-slate-700"
+                                                />
+                                                <div 
+                                                    className={`absolute top-0 left-0 h-4 rounded-full transition-all duration-500 ${progressColorClass}`}
+                                                    style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+                                                />
+                                                {progressPercentage > 100 && (
+                                                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse" />
+                                                )}
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>You've used {progressPercentage.toFixed(1)}% of your monthly budget</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                
+                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                    <span>₹0</span>
+                                    <span>Budget: {formatCurrency(budget)}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <Progress value={progressPercentage} className="h-2" indicatorClassName={progressColorClass} />
-                    <p className="text-xs text-right text-muted-foreground">{progressPercentage.toFixed(1)}% used</p>
+
+                    {/* Budget Alert */}
+                    {progressPercentage > 75 && (
+                        <div className={`relative p-4 rounded-xl border ${
+                            progressPercentage > 100 ? 'bg-gradient-to-r from-red-500/10 to-red-600/10 border-red-200/50 dark:border-red-800/50' :
+                            progressPercentage > 90 ? 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-yellow-200/50 dark:border-yellow-800/50' :
+                            'bg-gradient-to-r from-blue-500/10 to-blue-600/10 border-blue-200/50 dark:border-blue-800/50'
+                        }`}>
+                            <div className="flex items-center gap-3">
+                                <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                                    progressPercentage > 100 ? 'bg-red-500/20' :
+                                    progressPercentage > 90 ? 'bg-yellow-500/20' :
+                                    'bg-blue-500/20'
+                                }`}>
+                                    {progressPercentage > 100 ? (
+                                        <AlertTriangle className="h-5 w-5 text-red-600" />
+                                    ) : progressPercentage > 90 ? (
+                                        <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                                    ) : (
+                                        <Info className="h-5 w-5 text-blue-600" />
+                                    )}
+                                </div>
+                                <div>
+                                    <p className={`font-semibold ${
+                                        progressPercentage > 100 ? 'text-red-800 dark:text-red-200' :
+                                        progressPercentage > 90 ? 'text-yellow-800 dark:text-yellow-200' :
+                                        'text-blue-800 dark:text-blue-200'
+                                    }`}>
+                                        {progressPercentage > 100 ? 'Budget Exceeded!' :
+                                         progressPercentage > 90 ? 'Budget Alert!' :
+                                         'High Budget Usage'}
+                                    </p>
+                                    <p className={`text-sm ${
+                                        progressPercentage > 100 ? 'text-red-700 dark:text-red-300' :
+                                        progressPercentage > 90 ? 'text-yellow-700 dark:text-yellow-300' :
+                                        'text-blue-700 dark:text-blue-300'
+                                    }`}>
+                                        {progressPercentage > 100 ? 
+                                            `You've exceeded your budget by ${formatCurrency(expenses - budget)}` :
+                                            `You've used ${progressPercentage.toFixed(1)}% of your monthly budget`
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Quick Stats */}
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/5 to-blue-600/5 border border-blue-200/50 dark:border-blue-800/50">
+                            <div className="flex items-center gap-2 text-sm text-blue-600 mb-1">
+                                <Calendar className="h-4 w-4" />
+                                <span>This Month</span>
+                            </div>
+                            <div className="text-lg font-bold">{formatCurrency(expenses)}</div>
+                        </div>
+                        
+                        <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/5 to-emerald-600/5 border border-emerald-200/50 dark:border-emerald-800/50">
+                            <div className="flex items-center gap-2 text-sm text-emerald-600 mb-1">
+                                <Target className="h-4 w-4" />
+                                <span>Budget</span>
+                            </div>
+                            <div className="text-lg font-bold">{formatCurrency(budget)}</div>
+                        </div>
+                        
+                        <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/5 to-purple-600/5 border border-purple-200/50 dark:border-purple-800/50">
+                            <div className="flex items-center gap-2 text-sm text-purple-600 mb-1">
+                                <CheckCircle className="h-4 w-4" />
+                                <span>Daily Avg</span>
+                            </div>
+                            <div className="text-lg font-bold">{formatCurrency(expenses / new Date().getDate())}</div>
+                        </div>
+                    </div>
                 </div>
-            )
+            );
         }
 
         return (
-            <div className="text-center py-4">
-                 <p className="text-sm text-muted-foreground mb-4">You haven't set a budget yet. Get started now.</p>
-                <Button onClick={() => setIsEditing(true)}>Set Monthly Budget</Button>
+            <div className="h-[200px] flex items-center justify-center">
+                <div className="space-y-6 text-center">
+                    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/10 mx-auto">
+                        <Target className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <div className="space-y-2">
+                        <h3 className="text-lg font-semibold">No Budget Set</h3>
+                        <p className="text-sm text-muted-foreground max-w-md">
+                            Set a monthly budget to track your spending and get insights into your financial habits.
+                        </p>
+                    </div>
+                    <Button 
+                        onClick={() => setIsEditing(true)}
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-2"
+                    >
+                        <Target className="h-4 w-4 mr-2" />
+                        Set Monthly Budget
+                    </Button>
+                </div>
             </div>
-        )
-    }
+        );
+    };
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Monthly Budget</CardTitle>
-                <CardDescription>Your spending summary for the current month.</CardDescription>
+        <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+            
+            <CardHeader className="relative pb-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10">
+                            <Wallet className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                Monthly Budget
+                            </CardTitle>
+                            <CardDescription className="text-sm text-muted-foreground mt-1">
+                                Track your spending and stay within your budget
+                            </CardDescription>
+                        </div>
+                    </div>
+                    
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Info className="h-5 w-5 text-muted-foreground cursor-help hover:text-blue-600 transition-colors" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                                <p>Set a monthly budget to track your expenses and get alerts when you're approaching your limit.</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
             </CardHeader>
-            <CardContent>
+
+            <CardContent className="relative">
                 {renderContent()}
             </CardContent>
         </Card>
