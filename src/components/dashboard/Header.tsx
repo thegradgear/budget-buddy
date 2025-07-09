@@ -18,12 +18,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LogOut, User as UserIcon, Lightbulb } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import NotificationBell from './NotificationBell';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 export default function Header() {
   const { user } = useAuth();
@@ -51,18 +45,11 @@ export default function Header() {
         </div>
         
         {/* User Menu - Responsive */}
-        <TooltipProvider>
-          <div className="flex items-center gap-2">
-            <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/insights')} className="rounded-full border">
-                      <Lightbulb className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                    <p>AI Insights</p>
-                </TooltipContent>
-            </Tooltip>
+        <div className="flex items-center gap-4">
+            <Button variant="outline" size="sm" onClick={() => router.push('/dashboard/insights')}>
+                <Lightbulb className="mr-2 h-4 w-4" />
+                AI Insights
+            </Button>
             
             <NotificationBell />
 
@@ -99,8 +86,7 @@ export default function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-          </div>
-        </TooltipProvider>
+        </div>
       </div>
     </header>
   );
