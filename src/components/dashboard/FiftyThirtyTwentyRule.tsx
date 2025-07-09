@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { Transaction } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { AlertCircle, CheckCircle, TrendingDown } from 'lucide-react';
+import { AlertCircle, CheckCircle, TrendingDown, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Props = {
@@ -61,7 +61,19 @@ export default function FiftyThirtyTwentyRule({ transactions }: Props) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>50/30/20 Rule Analysis</CardTitle>
+                <div className="flex items-center gap-2">
+                    <CardTitle>50/30/20 Rule Analysis</CardTitle>
+                    <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                        <p>The 50/30/20 rule is a simple budgeting guideline: allocate 50% of your after-tax income to Needs, 30% to Wants, and 20% to Savings & Debt Repayment.</p>
+                        </TooltipContent>
+                    </Tooltip>
+                    </TooltipProvider>
+                </div>
                 <CardDescription>How your spending this month aligns with this popular budgeting rule.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -122,7 +134,19 @@ export default function FiftyThirtyTwentyRule({ transactions }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>50/30/20 Rule Analysis</CardTitle>
+        <div className="flex items-center gap-2">
+            <CardTitle>50/30/20 Rule Analysis</CardTitle>
+            <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                <p>The 50/30/20 rule is a simple budgeting guideline: allocate 50% of your after-tax income to Needs, 30% to Wants, and 20% to Savings & Debt Repayment.</p>
+                </TooltipContent>
+            </Tooltip>
+            </TooltipProvider>
+        </div>
         <CardDescription>How your spending this month aligns with this popular budgeting rule.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
