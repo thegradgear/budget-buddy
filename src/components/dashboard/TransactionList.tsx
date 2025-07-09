@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect, useMemo } from 'react';
 import { Transaction } from '@/types';
 import {
@@ -52,6 +54,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
     const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'amount'; direction: 'asc' | 'desc' }>({ key: 'date', direction: 'desc' });
     const { toast } = useToast();
     const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>();
+    const [exportPopoverOpen, setExportPopoverOpen] = useState(false);
 
     const uniqueCategories = useMemo(() => {
         const categories = new Set(transactions.map(t => t.category).filter(Boolean) as string[]);
@@ -201,6 +204,11 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
         URL.revokeObjectURL(url);
     
         toast({ title: 'Export successful', description: 'Your transaction report has been downloaded.' });
+        
+        if (period === 'custom') {
+            setCustomDateRange(undefined);
+        }
+        setExportPopoverOpen(false);
     };
 
   return (
@@ -210,7 +218,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
             <CardTitle>Transaction Log</CardTitle>
             <CardDescription>Search, filter, and sort all your income and expenses.</CardDescription>
         </div>
-        <Popover>
+        <Popover open={exportPopoverOpen} onOpenChange={setExportPopoverOpen}>
             <PopoverTrigger asChild>
                 <Button variant="outline" size="icon">
                     <Upload className="h-4 w-4" />
