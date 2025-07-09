@@ -383,7 +383,7 @@ export default function BudgetTracker() {
                     )}
 
                     {/* Quick Stats */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-4">
                         <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/5 to-blue-600/5 border border-blue-200/50 dark:border-blue-800/50">
                             <div className="flex items-center gap-2 text-sm text-blue-600 mb-1">
                                 <Calendar className="h-4 w-4" />
@@ -400,7 +400,7 @@ export default function BudgetTracker() {
                             <div className="text-lg font-bold">{formatCurrency(budget)}</div>
                         </div>
                         
-                        <div className="col-span-2 p-4 rounded-xl bg-gradient-to-br from-purple-500/5 to-purple-600/5 border border-purple-200/50 dark:border-purple-800/50 flex flex-col justify-between">
+                        <div className="col-span-2 sm:col-span-1 lg:col-span-2 p-4 rounded-xl bg-gradient-to-br from-purple-500/5 to-purple-600/5 border border-purple-200/50 dark:border-purple-800/50 flex flex-col justify-between">
                             <div className="flex items-center gap-2 text-sm text-purple-600 mb-1">
                                 <CheckCircle className="h-4 w-4" />
                                 <span>Daily Averages</span>
