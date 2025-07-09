@@ -34,10 +34,10 @@ export default function AccountOverview({ transactions }: Props) {
                 </div>
                 <div>
                     <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Account Snapshot
+                        Overall Financial Snapshot
                     </CardTitle>
                     <CardDescription className="text-sm text-muted-foreground mt-1">
-                        A quick summary of your financial activity.
+                        A quick summary of your financial activity across all accounts.
                     </CardDescription>
                 </div>
             </div>

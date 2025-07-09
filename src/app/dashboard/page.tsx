@@ -123,11 +123,10 @@ export default function DashboardPage() {
     });
   }, [accounts, allTransactions]);
 
-  const activeAccountTransactions = useMemo(() => {
-    if (!activeAccountId) return [];
-    // Sort transactions by date descending for display
-    return (allTransactions.get(activeAccountId) || []).sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [activeAccountId, allTransactions]);
+  const allCombinedTransactions = useMemo(() => {
+    const combined = Array.from(allTransactions.values()).flat();
+    return combined.sort((a, b) => b.date.getTime() - a.date.getTime());
+  }, [allTransactions]);
   
   const allTransactionsForCurrentMonth = useMemo(() => {
     const now = new Date();
@@ -226,20 +225,14 @@ export default function DashboardPage() {
         <FiftyThirtyTwentyRule transactions={allTransactionsForCurrentMonth} />
       </div>
 
-      {activeAccountId ? (
-        <div className="space-y-8">
-            <AccountOverview transactions={activeAccountTransactions} />
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <CategoryPieChart transactions={activeAccountTransactions} type="expense" title="Expense Breakdown" />
-                <CategoryPieChart transactions={activeAccountTransactions} type="income" title="Income Sources" />
-            </div>
-            <RecentTransactions transactions={activeAccountTransactions} accountId={activeAccountId}/>
-        </div>
-      ) : (
-        <div className="flex h-[50vh] items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      )}
+      <div className="space-y-8">
+          <AccountOverview transactions={allCombinedTransactions} />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <CategoryPieChart transactions={allCombinedTransactions} type="expense" title="Expense Breakdown" />
+              <CategoryPieChart transactions={allCombinedTransactions} type="income" title="Income Sources" />
+          </div>
+          <RecentTransactions transactions={allCombinedTransactions} />
+      </div>
 
         <div>
             <h2 className="text-2xl font-bold mb-4">Your Accounts</h2>

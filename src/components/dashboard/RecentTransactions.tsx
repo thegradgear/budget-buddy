@@ -17,7 +17,7 @@ import { ArrowRight, ListChecks } from 'lucide-react';
 
 type Props = {
   transactions: Transaction[];
-  accountId: string | null;
+  accountId?: string | null;
 };
 
 export default function RecentTransactions({ transactions, accountId }: Props) {
@@ -40,10 +40,13 @@ export default function RecentTransactions({ transactions, accountId }: Props) {
             </div>
             <div>
                 <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    Recent Transactions
+                    {accountId ? "Recent Transactions" : "All Recent Transactions"}
                 </CardTitle>
                 <CardDescription className="text-sm text-muted-foreground mt-1">
-                    Your last five transactions for this account.
+                    {accountId 
+                        ? "Your last five transactions for this account."
+                        : "Your last five transactions from all accounts."
+                    }
                 </CardDescription>
             </div>
         </div>

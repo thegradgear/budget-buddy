@@ -59,7 +59,7 @@ export default function CategoryPieChart({ transactions, type, title }: Props) {
               {title}
             </CardTitle>
             <CardDescription className="text-sm text-muted-foreground mt-1">
-              A breakdown of your {type} by category.
+              A breakdown of your {type} by category across all accounts.
             </CardDescription>
           </div>
         </div>
