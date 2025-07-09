@@ -43,6 +43,10 @@ export default function AccountDetailsPage() {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     if (!user || !db || !accountId) return;
 
     // Fetch account details
