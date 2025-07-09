@@ -173,15 +173,15 @@ export default function InsightsPage() {
                 ) : (
                     <Tabs defaultValue="report" className="space-y-4">
                         <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto h-12">
-                            <TabsTrigger value="report" className="h-full text-base gap-2">
+                            <TabsTrigger value="report" className="h-full text-base gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                                 <FileText className="h-5 w-5" />
                                 Financial Report
                             </TabsTrigger>
-                            <TabsTrigger value="health-score" className="h-full text-base gap-2">
+                            <TabsTrigger value="health-score" className="h-full text-base gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                                 <HeartPulse className="h-5 w-5" />
                                 Health Score
                             </TabsTrigger>
-                            <TabsTrigger value="event-planner" className="h-full text-base gap-2">
+                            <TabsTrigger value="event-planner" className="h-full text-base gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                                 <Map className="h-5 w-5" />
                                 Life Event Plan
                             </TabsTrigger>

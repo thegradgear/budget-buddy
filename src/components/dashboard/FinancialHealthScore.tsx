@@ -31,14 +31,11 @@ export default function FinancialHealthScore({ transactions, userProfile }: { tr
         setLoading(true);
         try {
             const transactionHistory = transactions
-                .map(t => `${format(new Date(t.date), 'yyyy-MM-dd')}: ${t.type === 'expense' ? '-' : '+'}₹${t.amount.toFixed(2)} for ${t.description}`)
+                .map(t => `${format(new Date(t.date), 'yyyy-MM-dd')}: ${t.type} of ${t.amount} for '${t.description}' in category '${t.category || 'Uncategorized'}'`)
                 .join('\n');
             
-            const budget = userProfile?.monthlyBudget ?? 0;
-
             const result = await getFinancialHealthScore({
                 transactionHistory,
-                monthlyBudget: budget,
             });
 
             const newScoreData = {
