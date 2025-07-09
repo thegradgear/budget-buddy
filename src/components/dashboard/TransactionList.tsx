@@ -165,13 +165,18 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
             return;
         }
     
-        const csvData = Papa.unparse(transactionsToExport.map(t => ({
+        const dataForCsv = transactionsToExport.map(t => ({
             Date: format(new Date(t.date), 'yyyy-MM-dd'),
             Description: t.description,
             Category: t.category || 'N/A',
             Type: t.type,
             Amount: t.amount,
-        })));
+        }));
+
+        const csvData = Papa.unparse({
+            fields: ["Date", "Description", "Category", "Type", "Amount"],
+            data: dataForCsv,
+        });
     
         const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
