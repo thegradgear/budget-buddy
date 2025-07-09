@@ -16,11 +16,19 @@ export type Account = {
 };
 
 export type Notification = {
-  id: string;
+  id:string;
   message: string;
   type: 'warning' | 'danger' | 'info';
   read: boolean;
   createdAt: Date;
+};
+
+export type FinancialHealthScore = {
+  score: number;
+  summary: string;
+  strengths: string[];
+  areasForImprovement: string[];
+  generatedAt: string;
 };
 
 export type UserProfile = {
@@ -33,4 +41,5 @@ export type UserProfile = {
   lastNotification100Sent?: string; // e.g. "2024-07"
   lastMonthlySummarySent?: string; // e.g. "2024-07"
   aiFinancialReport?: string;
+  financialHealthScore?: FinancialHealthScore;
 }

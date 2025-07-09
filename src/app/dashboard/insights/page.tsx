@@ -7,12 +7,15 @@ import { collection, getDocs, query, doc, getDoc, Timestamp, updateDoc } from 'f
 import { Transaction, UserProfile, Account } from '@/types';
 import { Button } from '@/components/ui/button';
 import { getSpendingSuggestions } from '@/ai/flows/spending-suggestions';
-import { Lightbulb, Loader2, ArrowLeft, Sparkles } from 'lucide-react';
+import { Lightbulb, Loader2, ArrowLeft, Sparkles, FileText, HeartPulse } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import FinancialHealthScore from '@/components/dashboard/FinancialHealthScore';
+
 
 // Helper function to format the AI response
 const formatAiResponse = (response: string): string => {
@@ -149,7 +152,7 @@ export default function InsightsPage() {
                     </div>
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  AI-Powered Financial Insights
+                  AI Financial Co-Pilot
                 </h1>
                 <p className="text-lg text-muted-foreground">
                     Get a holistic view of your financial habits. Our AI will analyze your transactions across all accounts to provide personalized advice.
@@ -163,34 +166,52 @@ export default function InsightsPage() {
                         <p className="mt-4 text-muted-foreground">Loading your financial data...</p>
                     </div>
                 ) : (
-                    <>
-                        <div className="flex-grow min-h-[300px] relative overflow-hidden rounded-xl border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 p-6">
-                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
-                            <div className="relative h-full">
-                              {loadingReport ? (
-                                  <div className="flex flex-col items-center justify-center h-full text-center">
-                                      <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                                      <p className="text-foreground">Analyzing your spending habits...</p>
-                                      <p className="text-xs text-muted-foreground mt-1">This may take a moment.</p>
-                                  </div>
-                              ) : report ? (
-                                  <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-headings:font-semibold prose-strong:font-semibold">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayReport}</ReactMarkdown>
-                                  </div>
-                              ) : (
-                                  <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full p-8">
-                                      <Lightbulb className="h-12 w-12 mb-4 text-primary/30" />
-                                      <h3 className="font-semibold text-lg text-foreground mb-2">Ready for your financial check-up?</h3>
-                                      <p className="max-w-md">Click the button below to get personalized advice based on your entire transaction history.</p>
-                                  </div>
-                              )}
-                            </div>
-                        </div>
-                        <Button onClick={handleGenerateReport} disabled={loadingReport || allTransactions.length === 0} className="mt-6 w-full sm:w-auto self-center" size="lg">
-                            {loadingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                            {loadingReport ? 'Analyzing...' : report ? 'Regenerate Full Financial Report' : 'Generate Full Financial Report'}
-                        </Button>
-                    </>
+                    <Tabs defaultValue="report" className="space-y-4">
+                        <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto h-12">
+                            <TabsTrigger value="report" className="h-full text-base gap-2">
+                                <FileText className="h-5 w-5" />
+                                Financial Report
+                            </TabsTrigger>
+                            <TabsTrigger value="health-score" className="h-full text-base gap-2">
+                                <HeartPulse className="h-5 w-5" />
+                                Health Score
+                            </TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="report">
+                          <div className="flex-grow min-h-[300px] relative overflow-hidden rounded-xl border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 p-6">
+                              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+                              <div className="relative h-full">
+                                {loadingReport ? (
+                                    <div className="flex flex-col items-center justify-center h-full text-center">
+                                        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                                        <p className="text-foreground">Analyzing your spending habits...</p>
+                                        <p className="text-xs text-muted-foreground mt-1">This may take a moment.</p>
+                                    </div>
+                                ) : report ? (
+                                    <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-headings:font-semibold prose-strong:font-semibold">
+                                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayReport}</ReactMarkdown>
+                                    </div>
+                                ) : (
+                                    <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full p-8">
+                                        <FileText className="h-12 w-12 mb-4 text-primary/30" />
+                                        <h3 className="font-semibold text-lg text-foreground mb-2">Ready for your financial check-up?</h3>
+                                        <p className="max-w-md">Click the button below to get personalized advice based on your entire transaction history.</p>
+                                    </div>
+                                )}
+                              </div>
+                          </div>
+                          <Button onClick={handleGenerateReport} disabled={loadingReport || allTransactions.length === 0} className="mt-6 w-full sm:w-auto self-center mx-auto flex" size="lg">
+                              {loadingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                              {loadingReport ? 'Analyzing...' : report ? 'Regenerate Full Financial Report' : 'Generate Full Financial Report'}
+                          </Button>
+                        </TabsContent>
+                        <TabsContent value="health-score">
+                            <FinancialHealthScore 
+                                transactions={allTransactions}
+                                userProfile={userProfile}
+                            />
+                        </TabsContent>
+                    </Tabs>
                 )}
             </div>
         </div>
