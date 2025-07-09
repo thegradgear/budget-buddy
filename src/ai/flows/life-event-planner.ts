@@ -176,6 +176,37 @@ const lifeEventPlannerFlow = ai.defineFlow(
     while (attempt < maxRetries) {
       try {
         const {output} = await prompt(aiInput);
+        if (output && output.isFeasible && output.investmentSuggestions) {
+            let totalFutureValue = 0;
+            let totalMonthlyInvestment = 0;
+
+            // Recalculate monthly and future values to ensure precision and remove AI's math errors.
+            for (const suggestion of output.investmentSuggestions) {
+                totalMonthlyInvestment += suggestion.monthlyInvestment;
+            }
+
+            // Adjust the last suggestion to make totals match perfectly
+            if (output.investmentSuggestions.length > 0) {
+                const lastSuggestion = output.investmentSuggestions[output.investmentSuggestions.length - 1];
+                const adjustment = Math.round(monthlySavingsAmount) - totalMonthlyInvestment;
+                lastSuggestion.monthlyInvestment += adjustment;
+                
+                // Recalculate FV for all suggestions with the precise monthly amounts
+                for (const suggestion of output.investmentSuggestions) {
+                    const returnRange = suggestion.estimatedReturn.match(/(\d+(\.\d+)?)/g);
+                    const avgReturn = returnRange ? (parseFloat(returnRange[0]) + parseFloat(returnRange[1] || returnRange[0])) / 2 / 100 : annualRate;
+                    const r = avgReturn / 12;
+                    const n_final = finalTimeframeYears * 12;
+                    const P_final = suggestion.monthlyInvestment;
+                    suggestion.futureValue = Math.round(P_final * ((Math.pow(1 + r, n_final) - 1) / r));
+                    totalFutureValue += suggestion.futureValue;
+                }
+
+                // Adjust the future value of the last item to make the grand total match the target amount
+                const fvAdjustment = targetAmount - totalFutureValue;
+                lastSuggestion.futureValue += fvAdjustment;
+            }
+        }
         return output!;
       } catch (error: any) {
         attempt++;
@@ -196,3 +227,5 @@ const lifeEventPlannerFlow = ai.defineFlow(
     throw new Error('Failed to generate life event plan after multiple retries.');
   }
 );
+
+    
