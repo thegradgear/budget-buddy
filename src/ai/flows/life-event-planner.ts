@@ -77,8 +77,29 @@ const lifeEventPlannerFlow = ai.defineFlow(
     inputSchema: LifeEventPlanInputSchema,
     outputSchema: LifeEventPlanOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  async (input) => {
+    const maxRetries = 3;
+    let attempt = 0;
+    while (attempt < maxRetries) {
+      try {
+        const {output} = await prompt(input);
+        return output!;
+      } catch (error: any) {
+        attempt++;
+        const isLastAttempt = attempt >= maxRetries;
+        const isOverloaded = error.message && (error.message.includes('503') || error.message.includes('overloaded'));
+        
+        if (isOverloaded && !isLastAttempt) {
+          const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
+          console.log(`Attempt ${attempt} failed with model overload. Retrying in ${delay / 1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          // For other errors or on the last attempt, re-throw to be caught by the client.
+          throw error;
+        }
+      }
+    }
+    // This should be unreachable, but TypeScript needs a return path.
+    throw new Error('Failed to generate life event plan after multiple retries.');
   }
 );

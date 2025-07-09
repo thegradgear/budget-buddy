@@ -84,8 +84,27 @@ const financialHealthScoreFlow = ai.defineFlow(
     inputSchema: FinancialHealthScoreInputSchema,
     outputSchema: FinancialHealthScoreOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  async (input) => {
+    const maxRetries = 3;
+    let attempt = 0;
+    while (attempt < maxRetries) {
+      try {
+        const {output} = await prompt(input);
+        return output!;
+      } catch (error: any) {
+        attempt++;
+        const isLastAttempt = attempt >= maxRetries;
+        const isOverloaded = error.message && (error.message.includes('503') || error.message.includes('overloaded'));
+        
+        if (isOverloaded && !isLastAttempt) {
+          const delay = Math.pow(2, attempt) * 1000;
+          console.log(`Attempt ${attempt} failed with model overload. Retrying in ${delay / 1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          throw error;
+        }
+      }
+    }
+    throw new Error('Failed to calculate financial health score after multiple retries.');
   }
 );
