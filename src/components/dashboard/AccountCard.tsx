@@ -31,15 +31,20 @@ export default function AccountCard({ account, isActive, onActivate }: Props) {
   return (
     <Card
       onClick={handleClick}
-      className={cn("h-full flex flex-col justify-between cursor-pointer hover:shadow-lg transition-shadow rounded-lg", isActive && "border-primary ring-2 ring-primary")}
+      className={cn(
+        "group h-full flex flex-col justify-between cursor-pointer rounded-xl border transition-all duration-300",
+        isActive
+          ? "border-primary/50 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 ring-2 ring-primary"
+          : "border-border bg-card hover:shadow-lg hover:border-primary/30"
+      )}
     >
       <CardHeader className="flex flex-row items-start justify-between pb-2">
         <div className="space-y-1">
-          <CardTitle className="text-xl">{account.name}</CardTitle>
-          <p className="text-sm text-muted-foreground">{account.type}</p>
+          <CardTitle className={cn("text-xl", isActive && "text-primary-foreground/90")}>{account.name}</CardTitle>
+          <p className={cn("text-sm", isActive ? "text-primary-foreground/70" : "text-muted-foreground")}>{account.type}</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Label htmlFor={`active-switch-${account.id}`} className={cn("text-xs", isActive ? "text-primary font-semibold" : "text-muted-foreground")}>
+          <Label htmlFor={`active-switch-${account.id}`} className={cn("text-xs", isActive ? "text-primary-foreground/80 font-semibold" : "text-muted-foreground")}>
             Active
           </Label>
           <Switch
@@ -54,12 +59,13 @@ export default function AccountCard({ account, isActive, onActivate }: Props) {
               e.stopPropagation();
               if (!isActive) onActivate(account.id);
             }}
+            className={cn(isActive && "data-[state=checked]:bg-white data-[state=unchecked]:bg-slate-500/50 [&>span]:bg-primary")}
           />
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{formatCurrency(account.balance)}</div>
-        <p className="text-xs text-muted-foreground">Current Balance</p>
+        <div className={cn("text-2xl font-bold", isActive && "text-primary-foreground")}>{formatCurrency(account.balance)}</div>
+        <p className={cn("text-xs", isActive ? "text-primary-foreground/70" : "text-muted-foreground")}>Current Balance</p>
       </CardContent>
     </Card>
   );

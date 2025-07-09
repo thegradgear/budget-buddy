@@ -216,9 +216,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-       <div>
+      <div className="space-y-1">
+        <p className="text-lg text-muted-foreground">{currentDate}</p>
         <h1 className="text-3xl font-bold text-foreground">Welcome back, {user?.displayName || 'User'}!</h1>
-        <p className="text-muted-foreground">{currentDate}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -227,14 +227,14 @@ export default function DashboardPage() {
       </div>
 
       {activeAccountId ? (
-        <>
+        <div className="space-y-8">
             <AccountOverview transactions={activeAccountTransactions} />
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <CategoryPieChart transactions={activeAccountTransactions} type="expense" title="Expense Categories" />
-                <CategoryPieChart transactions={activeAccountTransactions} type="income" title="Income Categories" />
+                <CategoryPieChart transactions={activeAccountTransactions} type="expense" title="Expense Breakdown" />
+                <CategoryPieChart transactions={activeAccountTransactions} type="income" title="Income Sources" />
             </div>
             <RecentTransactions transactions={activeAccountTransactions} accountId={activeAccountId}/>
-        </>
+        </div>
       ) : (
         <div className="flex h-[50vh] items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -253,7 +253,7 @@ export default function DashboardPage() {
                 />
             ))}
             <Card 
-                className="flex items-center justify-center border-dashed h-full min-h-[150px] hover:border-primary hover:text-primary transition-colors cursor-pointer"
+                className="flex items-center justify-center border-dashed h-full min-h-[150px] hover:border-primary hover:text-primary transition-colors cursor-pointer rounded-xl bg-card"
                 onClick={() => setIsAccountModalOpen(true)}
             >
                 <div className="text-center">

@@ -7,13 +7,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Button } from '../ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ListChecks } from 'lucide-react';
 
 type Props = {
   transactions: Transaction[];
@@ -31,9 +31,22 @@ export default function RecentTransactions({ transactions, accountId }: Props) {
   const recentTransactions = transactions.slice(0, 5);
 
   return (
-    <Card>
-      <CardHeader className='flex flex-row items-center justify-between'>
-        <CardTitle>Recent Transactions</CardTitle>
+    <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+      <CardHeader className='relative flex flex-row items-center justify-between pb-4'>
+        <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10">
+                <ListChecks className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    Recent Transactions
+                </CardTitle>
+                <CardDescription className="text-sm text-muted-foreground mt-1">
+                    Your last five transactions for this account.
+                </CardDescription>
+            </div>
+        </div>
         {accountId && (
            <Button variant="ghost" asChild>
              <Link href={`/dashboard/accounts/${accountId}`}>
@@ -42,7 +55,7 @@ export default function RecentTransactions({ transactions, accountId }: Props) {
            </Button>
         )}
       </CardHeader>
-      <CardContent>
+      <CardContent className="relative">
         <Table>
           <TableHeader>
             <TableRow>

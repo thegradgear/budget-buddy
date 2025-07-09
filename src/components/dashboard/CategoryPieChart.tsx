@@ -2,9 +2,10 @@
 
 import { useMemo } from 'react';
 import { Transaction } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
+import { PieChart as PieChartIcon } from 'lucide-react';
 
 type Props = {
   transactions: Transaction[];
@@ -46,11 +47,24 @@ export default function CategoryPieChart({ transactions, type, title }: Props) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
+    <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+      <CardHeader className="relative pb-6">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10">
+            <PieChartIcon className="h-6 w-6 text-blue-600" />
+          </div>
+          <div>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {title}
+            </CardTitle>
+            <CardDescription className="text-sm text-muted-foreground mt-1">
+              A breakdown of your {type} by category.
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="relative">
         {chartData.length > 0 ? (
           <ChartContainer config={{}} className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height={300}>
