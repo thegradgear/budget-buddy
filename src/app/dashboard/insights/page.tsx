@@ -6,7 +6,6 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, query, doc, getDoc, Timestamp } from 'firebase/firestore';
 import { Transaction, UserProfile, Account } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { getSpendingSuggestions } from '@/ai/flows/spending-suggestions';
 import { Lightbulb, Loader2, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -101,52 +100,55 @@ export default function InsightsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <Button variant="outline" onClick={() => router.push('/dashboard')}>
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Dashboard
-      </Button>
+    <div className="space-y-8">
+        <Button variant="outline" onClick={() => router.push('/dashboard')}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Dashboard
+        </Button>
 
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lightbulb className="h-6 w-6 text-primary" />
-            AI-Powered Financial Insights
-          </CardTitle>
-          <CardDescription>
-            Get a holistic view of your financial habits. Our AI will analyze your transactions across all accounts to provide personalized advice.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col">
-            {loadingData ? (
-                <div className="flex items-center justify-center h-64">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="ml-4 text-muted-foreground">Loading your financial data...</p>
+        <div className="space-y-8">
+            <div className="max-w-4xl mx-auto text-center space-y-2">
+                <div className="inline-flex items-center justify-center gap-3">
+                    <Lightbulb className="h-8 w-8 text-primary" />
+                    <h1 className="text-3xl font-bold tracking-tight">AI-Powered Financial Insights</h1>
                 </div>
-            ) : (
-                <>
-                    <div className="flex-grow min-h-[200px] bg-secondary p-4 rounded-md">
-                        {loadingSuggestions ? (
-                            <div className="flex flex-col items-center justify-center h-full text-center">
-                                <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                                <p className="text-muted-foreground">Analyzing your spending habits...</p>
-                            </div>
-                        ) : suggestions ? (
-                            <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{suggestions}</div>
-                        ) : (
-                            <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full">
-                            <Lightbulb className="h-12 w-12 mb-4 text-primary/50" />
-                            <p className="max-w-md">Ready for your financial check-up? Click the button below to get personalized advice based on your entire transaction history.</p>
-                            </div>
-                        )}
+                <p className="text-lg text-muted-foreground">
+                    Get a holistic view of your financial habits. Our AI will analyze your transactions across all accounts to provide personalized advice.
+                </p>
+            </div>
+            
+            <div className="max-w-4xl mx-auto flex flex-col">
+                {loadingData ? (
+                    <div className="flex flex-col items-center justify-center h-64">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="mt-4 text-muted-foreground">Loading your financial data...</p>
                     </div>
-                    <Button onClick={handleGetSuggestions} disabled={loadingSuggestions || allTransactions.length === 0} className="mt-4 w-full sm:w-auto self-center">
-                        {loadingSuggestions ? 'Analyzing...' : 'Generate Full Financial Report'}
-                    </Button>
-                </>
-            )}
-        </CardContent>
-      </Card>
+                ) : (
+                    <>
+                        <div className="flex-grow min-h-[200px] bg-secondary p-6 rounded-lg">
+                            {loadingSuggestions ? (
+                                <div className="flex flex-col items-center justify-center h-full text-center">
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                                    <p className="text-foreground">Analyzing your spending habits...</p>
+                                    <p className="text-xs text-muted-foreground mt-1">This may take a moment.</p>
+                                </div>
+                            ) : suggestions ? (
+                                <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{suggestions}</div>
+                            ) : (
+                                <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full p-8">
+                                    <Lightbulb className="h-12 w-12 mb-4 text-primary/30" />
+                                    <h3 className="font-semibold text-lg text-foreground mb-2">Ready for your financial check-up?</h3>
+                                    <p className="max-w-md">Click the button below to get personalized advice based on your entire transaction history.</p>
+                                </div>
+                            )}
+                        </div>
+                        <Button onClick={handleGetSuggestions} disabled={loadingSuggestions || allTransactions.length === 0} className="mt-6 w-full sm:w-auto self-center" size="lg">
+                            {loadingSuggestions ? 'Analyzing...' : 'Generate Full Financial Report'}
+                        </Button>
+                    </>
+                )}
+            </div>
+        </div>
     </div>
   );
 }
