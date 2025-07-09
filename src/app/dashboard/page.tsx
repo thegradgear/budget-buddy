@@ -26,6 +26,8 @@ import CategoryPieChart from '@/components/dashboard/CategoryPieChart';
 import RecentTransactions from '@/components/dashboard/RecentTransactions';
 import { Card } from '@/components/ui/card';
 import BudgetTracker from '@/components/dashboard/BudgetTracker';
+import FiftyThirtyTwentyRule from '@/components/dashboard/FiftyThirtyTwentyRule';
+import { startOfMonth, endOfMonth } from 'date-fns';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -126,6 +128,23 @@ export default function DashboardPage() {
     // Sort transactions by date descending for display
     return (allTransactions.get(activeAccountId) || []).sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [activeAccountId, allTransactions]);
+  
+  const allTransactionsForCurrentMonth = useMemo(() => {
+    const now = new Date();
+    const start = startOfMonth(now);
+    const end = endOfMonth(now);
+    
+    let monthlyTransactions: Transaction[] = [];
+    allTransactions.forEach(accountTransactions => {
+        const filtered = accountTransactions.filter(t => {
+            const tDate = new Date(t.date);
+            return tDate >= start && tDate <= end;
+        });
+        monthlyTransactions.push(...filtered);
+    });
+
+    return monthlyTransactions;
+  }, [allTransactions]);
 
 
   const handleSaveAccount = async (accountData: Omit<Account, 'id' | 'isActive'>) => {
@@ -202,7 +221,10 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">{currentDate}</p>
       </div>
 
-      <BudgetTracker />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <BudgetTracker />
+        <FiftyThirtyTwentyRule transactions={allTransactionsForCurrentMonth} />
+      </div>
 
       {activeAccountId ? (
         <>

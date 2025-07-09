@@ -36,7 +36,7 @@ const prompt = ai.definePrompt({
   prompt: `You are a financial assistant for users in India. Your task is to categorize a financial transaction based on its description and type.
 
 Please categorize the transaction into one of the following common Indian financial categories:
-- For expenses: Food & Dining, Shopping, Groceries, Utilities, Transport, Entertainment, Health & Wellness, Travel, Rent, EMI, Education, Other Expense.
+- For expenses: Food & Dining, Shopping, Groceries, Utilities, Transport, Entertainment, Health & Wellness, Travel, Rent, EMI, Education, Investment, Other Expense.
 - For income: Salary, Freelance Income, Investment, Rental Income, Other Income.
 
 Analyze the transaction details below and provide a single, most appropriate category.
