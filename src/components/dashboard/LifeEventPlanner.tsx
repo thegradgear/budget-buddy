@@ -9,9 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Loader2, Sparkles, Wand2, Target, PiggyBank, ArrowRight } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Target, PiggyBank, ArrowRight, AlertTriangle, CheckCircle, Calculator } from 'lucide-react';
 import { generateLifeEventPlan, LifeEventPlanOutput } from '@/ai/flows/life-event-planner';
 import { Badge } from '../ui/badge';
+import { Separator } from '../ui/separator';
 
 const formSchema = z.object({
   goal: z.string().min(3, 'Goal must be at least 3 characters long.'),
@@ -64,7 +65,142 @@ export default function LifeEventPlanner() {
     }
   };
 
-  const grandTotalFutureValue = plan?.investmentSuggestions.reduce((sum, item) => sum + item.futureValue, 0) ?? 0;
+  const grandTotalFutureValue = plan?.investmentSuggestions?.reduce((sum, item) => sum + item.futureValue, 0) ?? 0;
+  
+  const renderPlan = () => {
+    if (!plan) return null;
+
+    if (!plan.isFeasible && plan.feasibilityAnalysis) {
+        return (
+            <div className="space-y-6 w-full">
+                <Card className="relative overflow-hidden border-amber-500/50 shadow-xl bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/50 dark:to-yellow-950/50 p-6 text-center">
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">{plan.planTitle}</h2>
+                </Card>
+
+                <Card className="border-amber-500/30">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3 text-amber-700 dark:text-amber-400">
+                           <AlertTriangle className="h-6 w-6" />
+                           Goal May Be Unrealistic in Current Timeframe
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <p className="text-muted-foreground">{plan.summary}</p>
+                        <Separator />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Required Monthly Savings</p>
+                                <p className="font-bold text-lg text-red-600">{formatCurrency(plan.feasibilityAnalysis.requiredMonthlySavings)}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Your Max Affordable Savings</p>
+                                <p className="font-bold text-lg text-emerald-600">{formatCurrency(plan.feasibilityAnalysis.maxAffordableSavings)}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border-emerald-500/30">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3 text-emerald-700 dark:text-emerald-400">
+                           <CheckCircle className="h-6 w-6" />
+                           Here's An Achievable Alternative
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <p className="text-center text-muted-foreground">You can still reach your goal in:</p>
+                        <p className="text-center text-4xl font-bold text-primary">{plan.feasibilityAnalysis.minimumFeasibleTimeframe}</p>
+                        
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                           <Calculator className="h-5 w-5" />
+                           How We Calculated This
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm text-muted-foreground prose prose-sm dark:prose-invert max-w-none">
+                        {plan.feasibilityAnalysis.calculationBreakdown.map((step, index) => (
+                            <p key={index}>{step}</p>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+    
+    if (plan.isFeasible && plan.monthlySavings && plan.investmentSuggestions) {
+        return (
+            <div className="space-y-6 w-full">
+                <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 p-6 text-center">
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{plan.planTitle}</h2>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                           <PiggyBank className="h-5 w-5" />
+                           Monthly Savings Required
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-3xl font-bold">{formatCurrency(plan.monthlySavings.amount)}</p>
+                        <p className="text-muted-foreground">{plan.monthlySavings.summary}</p>
+                    </CardContent>
+                </Card>
+
+                <div className="space-y-4">
+                    <h3 className="font-semibold text-lg">Recommended Investment Strategy</h3>
+                    {plan.investmentSuggestions.map((item, index) => (
+                        <Card key={index}>
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center justify-between">
+                                    {item.type}
+                                    <Badge variant="secondary">{item.suggestedAllocation}</Badge>
+                                </CardTitle>
+                                <CardDescription>
+                                    Est. Return: <span className="font-semibold text-primary">{item.estimatedReturn}</span>
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <p className="text-sm text-muted-foreground">{item.description}</p>
+                                <div className="grid grid-cols-2 gap-4 text-center border-t pt-4">
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Monthly Investment</p>
+                                        <p className="font-bold text-lg">{formatCurrency(item.monthlyInvestment)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Projected Value</p>
+                                        <p className="font-bold text-lg">{formatCurrency(item.futureValue)}</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                <Card className="bg-primary/10 border-primary/20">
+                    <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                            <span>Projected Grand Total</span>
+                            <span className="text-2xl font-bold text-primary">{formatCurrency(grandTotalFutureValue)}</span>
+                        </CardTitle>
+                    </CardHeader>
+                </Card>
+
+                <Card className="bg-secondary">
+                    <CardContent className="pt-6">
+                        <p className="text-sm text-muted-foreground italic">{plan.summary}</p>
+                    </CardContent>
+                </Card>
+            </div>
+        )
+    }
+
+    return null;
+  }
 
   return (
     <div className="grid md:grid-cols-2 gap-8 items-start">
@@ -152,69 +288,7 @@ export default function LifeEventPlanner() {
                 <p>This may take a moment.</p>
             </div>
         ) : plan ? (
-            <div className="space-y-6 w-full">
-                <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 p-6 text-center">
-                    <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{plan.planTitle}</h2>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                           <PiggyBank className="h-5 w-5" />
-                           Monthly Savings Required
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-3xl font-bold">{formatCurrency(plan.monthlySavings.amount)}</p>
-                        <p className="text-muted-foreground">{plan.monthlySavings.summary}</p>
-                    </CardContent>
-                </Card>
-
-                <div className="space-y-4">
-                    <h3 className="font-semibold text-lg">Recommended Investment Strategy</h3>
-                    {plan.investmentSuggestions.map((item, index) => (
-                        <Card key={index}>
-                            <CardHeader>
-                                <CardTitle className="text-lg flex items-center justify-between">
-                                    {item.type}
-                                    <Badge variant="secondary">{item.suggestedAllocation}</Badge>
-                                </CardTitle>
-                                <CardDescription>
-                                    Est. Return: <span className="font-semibold text-primary">{item.estimatedReturn}</span>
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <p className="text-sm text-muted-foreground">{item.description}</p>
-                                <div className="grid grid-cols-2 gap-4 text-center border-t pt-4">
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Monthly Investment</p>
-                                        <p className="font-bold text-lg">{formatCurrency(item.monthlyInvestment)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Projected Value</p>
-                                        <p className="font-bold text-lg">{formatCurrency(item.futureValue)}</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-
-                <Card className="bg-primary/10 border-primary/20">
-                    <CardHeader>
-                        <CardTitle className="flex items-center justify-between">
-                            <span>Projected Grand Total</span>
-                            <span className="text-2xl font-bold text-primary">{formatCurrency(grandTotalFutureValue)}</span>
-                        </CardTitle>
-                    </CardHeader>
-                </Card>
-
-                <Card className="bg-secondary">
-                    <CardContent className="pt-6">
-                        <p className="text-sm text-muted-foreground italic">{plan.summary}</p>
-                    </CardContent>
-                </Card>
-            </div>
+            renderPlan()
         ) : (
             <div className="text-center text-muted-foreground p-8">
                 <Wand2 className="h-16 w-16 mx-auto mb-4 text-primary/30" />
