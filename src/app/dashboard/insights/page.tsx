@@ -208,7 +208,7 @@ export default function InsightsPage() {
                                 {loadingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                                 {loadingReport ? 'Analyzing...' : reportData ? 'Regenerate Full Financial Report' : 'Generate Full Financial Report'}
                             </Button>
-                            {reportData && (
+                            {reportData && reportData.generatedAt && (
                               <p className="text-xs text-muted-foreground">
                                 Last generated: {format(new Date(reportData.generatedAt), "MMM d, yyyy 'at' p")}
                               </p>

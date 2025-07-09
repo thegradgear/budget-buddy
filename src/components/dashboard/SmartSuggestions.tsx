@@ -137,7 +137,7 @@ export default function SmartSuggestions({ transactions, account }: Props) {
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
               {loading ? 'Analyzing...' : suggestionsData ? 'Regenerate Suggestions' : 'Get Suggestions'}
             </Button>
-            {suggestionsData && (
+            {suggestionsData && suggestionsData.generatedAt && (
               <p className="text-xs text-muted-foreground">
                 Last generated: {format(new Date(suggestionsData.generatedAt), "MMM d, yyyy 'at' p")}
               </p>
