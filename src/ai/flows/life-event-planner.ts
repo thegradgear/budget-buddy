@@ -65,11 +65,11 @@ User's Monthly Income: ₹{{monthlyIncome}}
 **Execution Steps:**
 
 **Step 1: Determine Required Monthly Savings & Feasibility**
-1.1. Calculate the required monthly savings (let's call it 'Required_P') to reach the target amount within the specified timeframe. To do this, you must first assume a conservative blended annual return rate based on the investment types suitable for the timeframe (e.g., around 8-10%).
+1.1. Calculate the required monthly savings (let's call it 'Required_P') to reach the target amount within the user's specified timeframe. To do this, you must first assume a conservative blended annual return rate based on the investment types suitable for the timeframe (e.g., around 8-10%).
 1.2. Use the standard future value of a series formula in reverse to solve for the monthly payment (P): P = (FV * r) / [(((1 + r)^n) - 1)], where FV is the 'targetAmount', r is the assumed monthly interest rate, and n is the number of months.
 1.3. Calculate the user's maximum affordable monthly savings, which is strictly 50% of their 'monthlyIncome'.
 1.4. **Feasibility Check:** Compare 'Required_P' with the 'maxAffordableSavings'.
-    - If 'Required_P' is LESS THAN OR EQUAL TO 'maxAffordableSavings', the plan is **FEASIBLE**. Set 'isFeasible' to true and proceed to Step 3.
+    - If 'Required_P' is LESS THAN OR EQUAL TO 'maxAffordableSavings', the plan is **FEASIBLE**. Set 'isFeasible' to true and proceed to Step 3, using the user's desired timeframe and the calculated 'Required_P'.
     - If 'Required_P' is GREATER THAN 'maxAffordableSavings', the plan is **UNFEASIBLE**. Set 'isFeasible' to false and proceed to Step 2.
 
 **Step 2: Handle Unfeasible Goal (If Necessary)**
@@ -85,11 +85,11 @@ User's Monthly Income: ₹{{monthlyIncome}}
 2.6. STOP here. Do not generate 'monthlySavings' or 'investmentSuggestions' fields for unfeasible plans.
 
 **Step 3: Generate Feasible Plan (If Feasible)**
-3.1. Populate the 'monthlySavings' object using the 'Required_P' calculated in step 1.2.
+3.1. Populate the 'monthlySavings' object using the 'Required_P' calculated in step 1.2 (this is based on the user's original, feasible timeframe).
 3.2. Develop a diversified investment strategy based on the timeframe (Short: 1-3 yrs, Medium: 3-7 yrs, Long: 7+ yrs).
 3.3. Create 2-3 specific 'investmentSuggestions'. For each suggestion:
     a. Calculate 'monthlyInvestment' (Total Monthly Savings * Allocation Percentage).
-    b. Calculate 'futureValue' using the FV of a series formula: FV = P * [(((1 + r)^n) - 1) / r]. Use a realistic interest rate for that specific investment type.
+    b. Calculate 'futureValue' using the FV of a series formula: FV = P * [(((1 + r)^n) - 1) / r]. Use a realistic interest rate for that specific investment type. The 'n' here is based on the user's original, feasible timeframe.
 3.4. **Verify Totals:** Ensure the sum of 'futureValue' from all suggestions roughly equals the 'targetAmount'.
 3.5. Generate an appropriate 'planTitle' (e.g., "Your Plan to Buy a New Car") and a concluding 'summary' with a disclaimer.
 
