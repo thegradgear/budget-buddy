@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MoreVertical, Pencil, Trash2, ChevronLeft, ChevronRight, ArrowUpDown, RotateCcw } from 'lucide-react';
+import { MoreVertical, Pencil, Trash2, ChevronLeft, ChevronRight, ArrowUpDown, RotateCcw, Upload } from 'lucide-react';
 import { format } from 'date-fns';
 import {
     DropdownMenu,
@@ -28,6 +28,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useToast } from '@/hooks/use-toast';
+import { startOfMonth, endOfMonth } from 'date-fns';
+import Papa from 'papaparse';
+
 
 type Props = {
   transactions: Transaction[];
@@ -43,6 +48,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
     const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'amount'; direction: 'asc' | 'desc' }>({ key: 'date', direction: 'desc' });
+    const { toast } = useToast();
 
     const uniqueCategories = useMemo(() => {
         const categories = new Set(transactions.map(t => t.category).filter(Boolean) as string[]);
@@ -133,11 +139,80 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
         setSortConfig({ key: 'date', direction: 'desc' });
     };
 
+    const handleExport = (period: 'current-month' | 'all-time') => {
+        let transactionsToExport: Transaction[] = [];
+        let fileName = '';
+        const now = new Date();
+    
+        if (period === 'current-month') {
+            const start = startOfMonth(now);
+            const end = endOfMonth(now);
+            transactionsToExport = transactions.filter(t => {
+                const tDate = new Date(t.date);
+                return tDate >= start && tDate <= end;
+            });
+            fileName = `Transaction Report - ${format(now, 'MMMM yyyy')}.csv`;
+        } else {
+            transactionsToExport = transactions;
+            fileName = `Transaction Report - All Time.csv`;
+        }
+    
+        if (transactionsToExport.length === 0) {
+            toast({
+                title: "No data to export",
+                description: "There are no transactions in the selected period.",
+            });
+            return;
+        }
+    
+        const csvData = Papa.unparse(transactionsToExport.map(t => ({
+            Date: format(new Date(t.date), 'yyyy-MM-dd'),
+            Description: t.description,
+            Category: t.category || 'N/A',
+            Type: t.type,
+            Amount: t.amount,
+        })));
+    
+        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', fileName);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    
+        toast({ title: 'Export successful', description: 'Your transaction report has been downloaded.' });
+    };
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Transaction Log</CardTitle>
-        <CardDescription>Search, filter, and sort all your income and expenses.</CardDescription>
+      <CardHeader className="flex flex-row items-start justify-between">
+        <div>
+            <CardTitle>Transaction Log</CardTitle>
+            <CardDescription>Search, filter, and sort all your income and expenses.</CardDescription>
+        </div>
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button variant="outline" size="icon">
+                    <Upload className="h-4 w-4" />
+                    <span className="sr-only">Export Transactions</span>
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56" align="end">
+                <div className="space-y-2">
+                    <p className="text-sm font-medium p-2">Export as CSV</p>
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => handleExport('current-month')}>
+                        This Month's Report
+                    </Button>
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => handleExport('all-time')}>
+                        All Transactions
+                    </Button>
+                </div>
+            </PopoverContent>
+        </Popover>
       </CardHeader>
       
       <div className="flex flex-col md:flex-row gap-4 items-center px-4 md:px-6 pb-4 border-b">
