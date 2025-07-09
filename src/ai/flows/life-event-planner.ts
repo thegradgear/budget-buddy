@@ -14,6 +14,7 @@ const LifeEventPlanInputSchema = z.object({
   goal: z.string().describe('The financial goal the user wants to achieve.'),
   targetAmount: z.number().positive().describe('The total amount of money needed for the goal, in INR.'),
   years: z.number().positive().describe('The number of years the user has to save for the goal.'),
+  monthlyIncome: z.number().positive().describe("The user's current monthly income in INR."),
 });
 export type LifeEventPlanInput = z.infer<typeof LifeEventPlanInputSchema>;
 
@@ -48,10 +49,11 @@ const prompt = ai.definePrompt({
 User's Goal: {{goal}}
 Target Amount: ₹{{targetAmount}}
 Timeframe: {{years}} years
+User's Monthly Income: ₹{{monthlyIncome}}
 
 **Your Plan Generation Steps:**
 
-1.  **Calculate Required Monthly Savings:** Determine the total monthly savings required to reach the target amount. For your calculation, assume a conservative blended annual return rate based on the investment suggestions you will provide (e.g., around 8-10% if suggesting a mix of equity and debt). Don't just divide the target by the number of months; factor in potential investment growth using a simple future value formula logic. The monthly savings should be realistic.
+1.  **Calculate Required Monthly Savings:** Determine the total monthly savings required to reach the target amount. For your calculation, assume a conservative blended annual return rate based on the investment suggestions you will provide (e.g., around 8-10% if suggesting a mix of equity and debt). Don't just divide the target by the number of months; factor in potential investment growth using a simple future value formula logic. **Crucially, the monthly savings must be realistic and should not exceed 50% of the user's monthly income. If the required savings are too high, adjust the plan or state that the goal is ambitious for the given income and timeframe.**
 2.  **Develop Investment Strategy:** Based on the timeframe, suggest a diversified investment strategy.
     *   **Short-term (1-3 years):** Focus on low-risk options. A mix of Recurring Deposits (RDs), Fixed Deposits (FDs), and maybe a small allocation to conservative hybrid mutual funds.
     *   **Medium-term (3-7 years):** A balanced approach. Suggest a mix of SIPs in balanced or large-cap equity mutual funds and some allocation to FDs/RDs.

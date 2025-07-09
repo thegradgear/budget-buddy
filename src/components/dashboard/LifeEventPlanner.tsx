@@ -16,6 +16,7 @@ import { Badge } from '../ui/badge';
 const formSchema = z.object({
   goal: z.string().min(3, 'Goal must be at least 3 characters long.'),
   targetAmount: z.coerce.number().positive('Target amount must be a positive number.'),
+  monthlyIncome: z.coerce.number().positive('Monthly income must be a positive number.'),
   years: z.coerce.number().min(1, 'Timeframe must be at least 1 year.'),
 });
 
@@ -41,6 +42,7 @@ export default function LifeEventPlanner() {
       goal: '',
       targetAmount: undefined,
       years: undefined,
+      monthlyIncome: undefined,
     },
   });
 
@@ -99,6 +101,19 @@ export default function LifeEventPlanner() {
                                     <FormLabel>Target Amount (in INR)</FormLabel>
                                     <FormControl>
                                         <Input type="number" placeholder="e.g., 500000" {...field} value={field.value ?? ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="monthlyIncome"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Your Monthly Income (in INR)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="e.g., 80000" {...field} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
