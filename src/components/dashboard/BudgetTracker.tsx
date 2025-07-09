@@ -111,13 +111,14 @@ export default function BudgetTracker() {
         }
     };
 
-    const { status, remainingBudget, progressPercentage, progressColorClass } = useMemo(() => {
+    const { status, remainingBudget, progressPercentage, progressColorClass, dailyAverages } = useMemo(() => {
         if (budget === null || budget <= 0) {
             return {
-                status: { status: 'none', message: 'No Budget Set', dailyAvg: 0 },
+                status: { status: 'none', message: 'No Budget Set' },
                 remainingBudget: 0,
                 progressPercentage: 0,
-                progressColorClass: ''
+                progressColorClass: '',
+                dailyAverages: { actual: 0, target: 0 },
             };
         }
 
@@ -130,32 +131,33 @@ export default function BudgetTracker() {
         const daysInMonth = getDaysInMonth(now);
         const daysPassed = getDate(now);
         const actualDailyAverage = daysPassed > 0 ? expenses / daysPassed : 0;
+        const budgetedDailyAverage = budget / daysInMonth;
 
         let statusObj;
         
         if (progress > 100) {
-            statusObj = { status: 'critical', message: 'Over Budget', dailyAvg: actualDailyAverage };
+            statusObj = { status: 'critical', message: 'Over Budget' };
         } else if (progress > 90) {
-            statusObj = { status: 'warning', message: 'Almost Exceeded', dailyAvg: actualDailyAverage };
+            statusObj = { status: 'warning', message: 'Almost Exceeded' };
         } else if (daysPassed > 7) {
-            const budgetedDailyAverage = budget / daysInMonth;
             const dailySpendingRatio = budgetedDailyAverage > 0 ? actualDailyAverage / budgetedDailyAverage : 0;
             if (dailySpendingRatio > 1.5) {
-                statusObj = { status: 'warning', message: 'High Daily Pace', dailyAvg: actualDailyAverage };
+                statusObj = { status: 'warning', message: 'High Daily Pace' };
             } else if (dailySpendingRatio > 1.2) {
-                statusObj = { status: 'caution', message: 'Pace Yourself', dailyAvg: actualDailyAverage };
+                statusObj = { status: 'caution', message: 'Pace Yourself' };
             } else {
-                statusObj = { status: 'good', message: 'On Track', dailyAvg: actualDailyAverage };
+                statusObj = { status: 'good', message: 'On Track' };
             }
         } else {
-            statusObj = { status: 'good', message: 'On Track', dailyAvg: actualDailyAverage };
+            statusObj = { status: 'good', message: 'On Track' };
         }
 
         return {
             status: statusObj,
             remainingBudget: budget - expenses,
             progressPercentage: Math.min(progress, 100),
-            progressColorClass: colorClass
+            progressColorClass: colorClass,
+            dailyAverages: { actual: actualDailyAverage, target: budgetedDailyAverage }
         };
     }, [budget, expenses]);
 
@@ -398,12 +400,21 @@ export default function BudgetTracker() {
                             <div className="text-lg font-bold">{formatCurrency(budget)}</div>
                         </div>
                         
-                        <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/5 to-purple-600/5 border border-purple-200/50 dark:border-purple-800/50">
+                        <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/5 to-purple-600/5 border border-purple-200/50 dark:border-purple-800/50 flex flex-col justify-between">
                             <div className="flex items-center gap-2 text-sm text-purple-600 mb-1">
                                 <CheckCircle className="h-4 w-4" />
-                                <span>Daily Avg</span>
+                                <span>Daily Averages</span>
                             </div>
-                            <div className="text-lg font-bold">{formatCurrency(status.dailyAvg)}</div>
+                            <div className="flex justify-between items-baseline gap-2">
+                                <div className="text-center">
+                                    <p className="text-xs text-muted-foreground">Actual</p>
+                                    <p className="text-base font-bold">{formatCurrency(dailyAverages.actual)}</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-xs text-muted-foreground">Target</p>
+                                    <p className="text-base font-bold text-muted-foreground/80">{formatCurrency(dailyAverages.target)}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
