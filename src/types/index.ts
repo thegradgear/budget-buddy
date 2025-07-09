@@ -12,6 +12,7 @@ export type Account = {
   name: string;
   type: 'Savings' | 'Checking' | 'Credit Card' | 'Cash';
   isActive?: boolean;
+  aiSuggestions?: string;
 };
 
 export type Notification = {

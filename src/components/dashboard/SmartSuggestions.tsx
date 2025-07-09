@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Transaction } from '@/types';
+import { useState, useEffect } from 'react';
+import { Transaction, Account } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { getSpendingSuggestions } from '@/ai/flows/spending-suggestions';
@@ -10,17 +10,37 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAuth } from '@/lib/auth';
+import { db } from '@/lib/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 type Props = {
   transactions: Transaction[];
+  account: Account | null;
 };
 
-export default function SmartSuggestions({ transactions }: Props) {
+export default function SmartSuggestions({ transactions, account }: Props) {
   const [suggestions, setSuggestions] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (account?.aiSuggestions) {
+      setSuggestions(account.aiSuggestions);
+    } else {
+      setSuggestions('');
+    }
+  }, [account]);
 
   const handleGetSuggestions = async () => {
+    if (!user || !account || !db) {
+        toast({ title: "Error", description: "Cannot generate suggestions without a logged-in user and account.", variant: "destructive" });
+        return;
+    }
+
     setLoading(true);
     setSuggestions('');
     try {
@@ -35,7 +55,15 @@ export default function SmartSuggestions({ transactions }: Props) {
         currentBudget: totalIncome, // Simplified: uses total income as budget reference
       });
 
-      setSuggestions(result.suggestions);
+      const newSuggestions = result.suggestions;
+      setSuggestions(newSuggestions);
+
+      // Save to Firebase
+      const accountDocRef = doc(db, 'users', user.uid, 'accounts', account.id);
+      await updateDoc(accountDocRef, {
+        aiSuggestions: newSuggestions
+      });
+
     } catch (error) {
       console.error(error);
       toast({
@@ -55,25 +83,27 @@ export default function SmartSuggestions({ transactions }: Props) {
         <CardDescription>Get AI-powered tips for this account.</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow flex flex-col">
-        <div className="flex-grow min-h-0">
-          {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : suggestions ? (
-              <ScrollArea className="h-full pr-4">
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{suggestions}</p>
-              </ScrollArea>
-          ) : (
-            <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full">
-              <Lightbulb className="h-12 w-12 mb-4 text-primary/50" />
-              <p>Click the button to get financial advice for this account.</p>
-            </div>
-          )}
+        <div className="flex-grow min-h-[250px] relative">
+          <ScrollArea className="h-full pr-4">
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : suggestions ? (
+              <div className="text-sm text-muted-foreground leading-relaxed">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{suggestions}</ReactMarkdown>
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full">
+                <Lightbulb className="h-12 w-12 mb-4 text-primary/50" />
+                <p>Click the button to get financial advice for this account.</p>
+              </div>
+            )}
+          </ScrollArea>
         </div>
         <div className="mt-4 shrink-0">
             <Button onClick={handleGetSuggestions} disabled={loading || transactions.length === 0} className="w-full">
-            {loading ? 'Analyzing...' : 'Get Suggestions'}
+            {loading ? 'Analyzing...' : suggestions ? 'Regenerate Suggestions' : 'Get Suggestions'}
             </Button>
         </div>
       </CardContent>

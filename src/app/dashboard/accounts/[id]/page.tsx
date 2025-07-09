@@ -154,7 +154,7 @@ export default function AccountDetailsPage() {
         <AccountOverview transactions={transactions} />
         <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8">
           <SpendingChart transactions={transactions} />
-          <SmartSuggestions transactions={transactions} />
+          <SmartSuggestions transactions={transactions} account={account} />
         </div>
         <TransactionList 
           transactions={transactions} 

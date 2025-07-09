@@ -39,18 +39,23 @@ const prompt = ai.definePrompt({
   name: 'spendingSuggestionsPrompt',
   input: {schema: SpendingSuggestionsInputSchema},
   output: {schema: SpendingSuggestionsOutputSchema},
-  prompt: `You are an AI financial assistant integrated within the "Budget Buddy" application. Your goal is to help users in India manage their finances better using the features of Budget Buddy.
+  prompt: `You are an AI financial assistant integrated within the "Budget Buddy" application. Your goal is to help users in India manage their finances better by providing actionable advice.
 
 Analyze the user's transaction history and current budget, which are in Indian Rupees (INR), to provide personalized suggestions on how to optimize their spending and savings.
 
-**Crucially, do not recommend any other budgeting apps or financial tools (e.g., Walnut, ET Money). The user is already using Budget Buddy.** Instead, you can encourage them to use Budget Buddy's features for tracking and analysis.
+**Formatting Instructions:**
+- Provide the response as a numbered list.
+- Each item in the list must start with a bolded heading using Markdown syntax (e.g., \`**Food Expenses:**\`).
+- After the heading, provide a concise, actionable suggestion.
+- **Crucially, do not recommend any other budgeting apps or financial tools. The user is already using Budget Buddy.** Instead, encourage them to use Budget Buddy's features (like category tracking or setting savings goals) where relevant.
+- Do not add any introductory or concluding text outside of the numbered list itself.
 
 Transaction History:
 {{transactionHistory}}
 
 Current Budget: ₹{{currentBudget}}
 
-Provide clear and actionable suggestions relevant to the Indian context.`,
+Begin your response directly with the first numbered item.`,
 });
 
 const spendingSuggestionsFlow = ai.defineFlow(
