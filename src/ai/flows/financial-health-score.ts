@@ -36,17 +36,44 @@ const prompt = ai.definePrompt({
   name: 'financialHealthScorePrompt',
   input: {schema: FinancialHealthScoreInputSchema},
   output: {schema: FinancialHealthScoreOutputSchema},
-  prompt: `You are a financial health analyst for "Budget Buddy", an app for users in India. Your task is to calculate a financial health score for a user based on their transaction history and budget. The score should be between 0 and 100. All currency is in INR.
+  prompt: `You are a financial health analyst for "Budget Buddy", an app for users in India. Your task is to calculate a financial health score based on the 50/30/20 budgeting rule. The score should be between 0 and 100. All currency is in INR.
 
-Analyze the provided data based on these key pillars of financial health:
-1.  **Budget Adherence (40 points):** How well does the user stick to their budget? Are expenses consistently lower than their budget?
-2.  **Savings Rate (30 points):** What percentage of their income are they saving? (Savings = Income - Expenses). A rate above 20% is excellent. A rate between 10-20% is good. Below 10% needs improvement. Negative savings is a major red flag.
-3.  **Spending Habits (20 points):** Is spending consistent or volatile? Are 'Wants' (like Shopping, Entertainment) a reasonable proportion of their spending compared to 'Needs' (like Groceries, Utilities, Rent)?
-4.  **Income Stability (10 points):** Is income regular? (This is a minor factor).
+**Step 1: Understand the 50/30/20 Rule & Categories**
+The rule suggests allocating after-tax income as follows:
+- 50% to **Needs**: Essential expenses.
+- 30% to **Wants**: Non-essential lifestyle expenses.
+- 20% to **Savings & Debt**: Investments, EMI payments, and any money left over.
 
-Based on your analysis of these pillars, calculate a final score. Provide a brief, encouraging summary, and then list their top 2-3 strengths and top 2-3 actionable areas for improvement.
+First, categorize each expense from the transaction history into 'Needs', 'Wants', or 'Savings & Debt' based on its description, using this mapping:
+- **Needs Categories:** Groceries, Utilities, Transport, Rent, Health & Wellness, Education.
+- **Wants Categories:** Food & Dining, Shopping, Entertainment, Travel, Other Expense.
+- **Savings & Debt Categories:** EMI, Investment.
 
-**User's Monthly Budget:** ₹{{monthlyBudget}}
+**Step 2: Calculate Spending Percentages**
+1. Calculate Total Income from the transaction history.
+2. Sum up the total amount for each of the three main categories (Needs, Wants, Savings & Debt).
+3. Any income remaining after all expenses counts towards 'Savings & Debt'.
+4. Calculate the percentage of total income that goes to each category.
+
+**Step 3: Calculate the Score (out of 100)**
+- **Needs (Max 50 points):**
+  - If Needs are <= 50% of income, award 50 points.
+  - For every 1% over 50%, deduct 2 points. (e.g., 55% on needs = 40 points).
+- **Wants (Max 30 points):**
+  - If Wants are <= 30% of income, award 30 points.
+  - For every 1% over 30%, deduct 1.5 points. (e.g., 40% on wants = 15 points).
+- **Savings & Debt (Max 20 points):**
+  - If Savings are >= 20% of income, award 20 points.
+  - For every 1% below 20%, deduct 1 point. (e.g., 15% savings = 15 points).
+
+Sum the points from all three sections to get the final score.
+
+**Step 4: Generate Analysis**
+Based on the score and the 50/30/20 breakdown, provide:
+1.  A brief, encouraging summary of their financial health.
+2.  2-3 key strengths (e.g., "You're doing a great job keeping your 'Needs' spending in check.").
+3.  2-3 actionable areas for improvement based on the rule (e.g., "Your 'Wants' spending is a bit high. Try categorizing your subscriptions in Budget Buddy to see where you can cut back.").
+
 **User's Transaction History:**
 {{transactionHistory}}`,
 });
