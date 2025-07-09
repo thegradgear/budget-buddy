@@ -34,7 +34,7 @@ export default function AccountCard({ account, isActive, onActivate }: Props) {
       className={cn(
         "group h-full flex flex-col justify-between cursor-pointer rounded-xl border transition-all duration-300",
         isActive
-          ? "border-primary/50 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 ring-2 ring-primary"
+          ? "bg-primary text-primary-foreground border-primary ring-2 ring-primary"
           : "border-border bg-card hover:shadow-lg hover:border-primary/30"
       )}
     >
@@ -59,7 +59,7 @@ export default function AccountCard({ account, isActive, onActivate }: Props) {
               e.stopPropagation();
               if (!isActive) onActivate(account.id);
             }}
-            className={cn(isActive && "data-[state=checked]:bg-white data-[state=unchecked]:bg-slate-500/50 [&>span]:bg-primary")}
+            className={cn(isActive && "data-[state=checked]:bg-white/30 data-[state=unchecked]:bg-black/20 [&>span]:bg-primary-foreground")}
           />
         </div>
       </CardHeader>
