@@ -10,8 +10,8 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MoreVertical, Pencil, Trash2, ChevronLeft, ChevronRight, ArrowUpDown, RotateCcw, Upload } from 'lucide-react';
-import { format } from 'date-fns';
+import { MoreVertical, Pencil, Trash2, ChevronLeft, ChevronRight, ArrowUpDown, RotateCcw, Upload, CalendarIcon } from 'lucide-react';
+import { format, startOfDay, endOfDay, startOfMonth, endOfMonth } from 'date-fns';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -30,8 +30,10 @@ import {
 } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
-import { startOfMonth, endOfMonth } from 'date-fns';
 import Papa from 'papaparse';
+import { DateRange } from 'react-day-picker';
+import { Calendar } from '@/components/ui/calendar';
+import { Separator } from '@/components/ui/separator';
 
 
 type Props = {
@@ -49,6 +51,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
     const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
     const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'amount'; direction: 'asc' | 'desc' }>({ key: 'date', direction: 'desc' });
     const { toast } = useToast();
+    const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>();
 
     const uniqueCategories = useMemo(() => {
         const categories = new Set(transactions.map(t => t.category).filter(Boolean) as string[]);
@@ -139,7 +142,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
         setSortConfig({ key: 'date', direction: 'desc' });
     };
 
-    const handleExport = (period: 'current-month' | 'all-time') => {
+    const handleExport = (period: 'current-month' | 'all-time' | 'custom', range?: DateRange) => {
         let transactionsToExport: Transaction[] = [];
         let fileName = '';
         const now = new Date();
@@ -152,9 +155,17 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
                 return tDate >= start && tDate <= end;
             });
             fileName = `Transaction Report - ${format(now, 'MMMM yyyy')}.csv`;
-        } else {
+        } else if (period === 'all-time') {
             transactionsToExport = transactions;
             fileName = `Transaction Report - All Time.csv`;
+        } else if (period === 'custom' && range?.from && range?.to) {
+            const start = startOfDay(range.from);
+            const end = endOfDay(range.to);
+            transactionsToExport = transactions.filter(t => {
+                const tDate = new Date(t.date);
+                return tDate >= start && tDate <= end;
+            });
+            fileName = `Transaction Report - ${format(start, 'yyyy-MM-dd')}_to_${format(end, 'yyyy-MM-dd')}.csv`;
         }
     
         if (transactionsToExport.length === 0) {
@@ -206,15 +217,66 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Prop
                     <span className="sr-only">Export Transactions</span>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-56" align="end">
-                <div className="space-y-2">
-                    <p className="text-sm font-medium p-2">Export as CSV</p>
-                    <Button variant="ghost" className="w-full justify-start" onClick={() => handleExport('current-month')}>
-                        This Month's Report
-                    </Button>
-                    <Button variant="ghost" className="w-full justify-start" onClick={() => handleExport('all-time')}>
-                        All Transactions
-                    </Button>
+            <PopoverContent className="w-80" align="end">
+                <div className="space-y-4 p-2">
+                    <p className="text-sm font-medium">Export as CSV</p>
+                    <div className="space-y-2">
+                        <Button variant="ghost" className="w-full justify-start" onClick={() => handleExport('current-month')}>
+                            This Month's Report
+                        </Button>
+                        <Button variant="ghost" className="w-full justify-start" onClick={() => handleExport('all-time')}>
+                            All Transactions
+                        </Button>
+                    </div>
+                    <Separator />
+                    <div className="space-y-2">
+                        <p className="text-sm font-medium">Custom Date Range</p>
+                        <div className="grid gap-2">
+                            <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                id="date"
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !customDateRange && "text-muted-foreground"
+                                )}
+                                >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {customDateRange?.from ? (
+                                    customDateRange.to ? (
+                                    <>
+                                        {format(customDateRange.from, "LLL dd, y")} -{" "}
+                                        {format(customDateRange.to, "LLL dd, y")}
+                                    </>
+                                    ) : (
+                                    format(customDateRange.from, "LLL dd, y")
+                                    )
+                                ) : (
+                                    <span>Pick a date range</span>
+                                )}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="end">
+                                <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={customDateRange?.from}
+                                selected={customDateRange}
+                                onSelect={setCustomDateRange}
+                                numberOfMonths={2}
+                                />
+                            </PopoverContent>
+                            </Popover>
+                        </div>
+                        <Button
+                            className="w-full"
+                            disabled={!customDateRange?.from || !customDateRange?.to}
+                            onClick={() => handleExport('custom', customDateRange)}
+                        >
+                            Download Custom Report
+                        </Button>
+                    </div>
                 </div>
             </PopoverContent>
         </Popover>
