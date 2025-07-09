@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Transaction, Account } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { getSpendingSuggestions } from '@/ai/flows/spending-suggestions';
 import { Lightbulb, Loader2, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -78,9 +78,17 @@ export default function SmartSuggestions({ transactions, account }: Props) {
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader>
-        <CardTitle>Smart Suggestions</CardTitle>
-        <CardDescription>Get AI-powered tips for this account.</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+            <CardTitle>Smart Suggestions</CardTitle>
+            <CardDescription>Get AI-powered tips for this account.</CardDescription>
+        </div>
+        <Button asChild variant="link" className="text-xs p-0 h-auto">
+            <Link href="/dashboard/insights">
+                Full Analysis
+                <ArrowRight className="ml-1 h-3 w-3" />
+            </Link>
+        </Button>
       </CardHeader>
       <CardContent className="flex-grow flex flex-col">
         <div className="flex-grow min-h-[250px] relative">
@@ -107,14 +115,6 @@ export default function SmartSuggestions({ transactions, account }: Props) {
             </Button>
         </div>
       </CardContent>
-      <CardFooter className="p-2 border-t bg-secondary shrink-0">
-          <Button variant="link" asChild className="w-full text-xs">
-              <Link href="/dashboard/insights">
-                  Go to AI Insights for a full analysis
-                  <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-          </Button>
-      </CardFooter>
     </Card>
   );
 }
