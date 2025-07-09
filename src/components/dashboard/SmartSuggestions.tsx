@@ -9,6 +9,7 @@ import { Lightbulb, Loader2, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type Props = {
   transactions: Transaction[];
@@ -53,14 +54,16 @@ export default function SmartSuggestions({ transactions }: Props) {
         <CardTitle>Smart Suggestions</CardTitle>
         <CardDescription>Get AI-powered tips for this account.</CardDescription>
       </CardHeader>
-      <CardContent className="flex-grow flex flex-col justify-between">
-        <div className="flex-grow">
+      <CardContent className="flex-grow flex flex-col">
+        <div className="flex-grow min-h-0">
           {loading ? (
             <div className="flex items-center justify-center h-full">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : suggestions ? (
-              <div className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{suggestions}</div>
+              <ScrollArea className="h-full pr-4">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{suggestions}</p>
+              </ScrollArea>
           ) : (
             <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full">
               <Lightbulb className="h-12 w-12 mb-4 text-primary/50" />
@@ -68,11 +71,13 @@ export default function SmartSuggestions({ transactions }: Props) {
             </div>
           )}
         </div>
-        <Button onClick={handleGetSuggestions} disabled={loading || transactions.length === 0} className="mt-4 w-full">
-          {loading ? 'Analyzing...' : 'Get Suggestions'}
-        </Button>
+        <div className="mt-4 shrink-0">
+            <Button onClick={handleGetSuggestions} disabled={loading || transactions.length === 0} className="w-full">
+            {loading ? 'Analyzing...' : 'Get Suggestions'}
+            </Button>
+        </div>
       </CardContent>
-      <CardFooter className="p-2 border-t bg-secondary">
+      <CardFooter className="p-2 border-t bg-secondary shrink-0">
           <Button variant="link" asChild className="w-full text-xs">
               <Link href="/dashboard/insights">
                   Go to AI Insights for a full analysis
