@@ -22,7 +22,9 @@ const InvestmentSuggestionSchema = z.object({
     type: z.string().describe("The type of investment (e.g., 'SIP in Equity Mutual Funds', 'Fixed Deposit (FD)', 'Recurring Deposit (RD)')."),
     description: z.string().describe("A brief explanation of why this investment is suitable for the user's goal and timeframe."),
     estimatedReturn: z.string().describe("The estimated annual return for this investment type, expressed as a range (e.g., '10-12% p.a.', '6-7.5% p.a.')."),
-    suggestedAllocation: z.string().describe("The suggested percentage of monthly savings to allocate to this investment (e.g., '60%')."),
+    suggestedAllocation: z.string().describe("The suggested percentage of the total monthly savings to allocate to this investment (e.g., '60%')."),
+    monthlyInvestment: z.number().describe("The specific amount to invest in this type each month."),
+    futureValue: z.number().describe("The estimated future value of this specific investment at the end of the timeframe."),
 });
 
 const LifeEventPlanOutputSchema = z.object({
@@ -31,7 +33,7 @@ const LifeEventPlanOutputSchema = z.object({
       amount: z.number().describe("The total amount the user needs to save each month."),
       summary: z.string().describe("A one-sentence summary about the monthly savings required."),
   }),
-  investmentSuggestions: z.array(InvestmentSuggestionSchema).describe("A list of 2-3 diversified investment suggestions."),
+  investmentSuggestions: z.array(InvestmentSuggestionSchema).describe("A list of 2-3 diversified investment suggestions with detailed calculations."),
   summary: z.string().describe("A concluding paragraph with encouraging words and a disclaimer about market risks."),
 });
 export type LifeEventPlanOutput = z.infer<typeof LifeEventPlanOutputSchema>;
@@ -44,7 +46,7 @@ const prompt = ai.definePrompt({
   name: 'lifeEventPlannerPrompt',
   input: {schema: LifeEventPlanInputSchema},
   output: {schema: LifeEventPlanOutputSchema},
-  prompt: `You are an expert financial planner for "Budget Buddy", an app for users in India. Your task is to create a personalized, actionable financial plan for a user's life event goal.
+  prompt: `You are an expert financial planner for "Budget Buddy", an app for users in India. Your task is to create a personalized, actionable financial plan for a user's life event goal, complete with mathematical calculations.
 
 User's Goal: {{goal}}
 Target Amount: ₹{{targetAmount}}
@@ -58,16 +60,19 @@ User's Monthly Income: ₹{{monthlyIncome}}
     *   **Short-term (1-3 years):** Focus on low-risk options. A mix of Recurring Deposits (RDs), Fixed Deposits (FDs), and maybe a small allocation to conservative hybrid mutual funds.
     *   **Medium-term (3-7 years):** A balanced approach. Suggest a mix of SIPs in balanced or large-cap equity mutual funds and some allocation to FDs/RDs.
     *   **Long-term (7+ years):** More equity exposure. Suggest a higher allocation to SIPs in equity mutual funds (flexi-cap, large-cap).
-3.  **Create Specific Suggestions:**
-    *   Provide 2-3 distinct investment suggestions.
-    *   For each suggestion, specify the type, a brief description of its suitability, the estimated annual return range (be realistic, e.g., Equity SIPs: 10-14% p.a., FDs: 6-7.5% p.a.), and the percentage of the monthly savings to be allocated to it. The percentages must add up to 100%.
-4.  **Generate a Concluding Summary:** Write a brief, encouraging summary. Crucially, include a disclaimer that investments are subject to market risks and these are suggestions, not financial advice.
+3.  **Create Specific Suggestions & CALCULATIONS:**
+    *   Provide 2-3 distinct investment suggestions. The allocations must sum to 100%.
+    *   For each suggestion, you MUST perform and output the following calculations:
+        a.  **'monthlyInvestment'**: Calculate the specific amount in INR to be invested monthly into this option. This is calculated as (Total Monthly Savings * Allocation Percentage).
+        b.  **'futureValue'**: Calculate the projected future value of *this specific investment* at the end of the timeframe. Use the standard future value of a series formula: FV = P * [(((1 + r)^n) - 1) / r], where P is the 'monthlyInvestment', r is the monthly interest rate (use a realistic rate from your 'estimatedReturn', e.g., for 12% annual, use 0.01 monthly), and n is the total number of months ('years' * 12).
+4.  **Verify Totals:** Ensure that the sum of all individual 'monthlyInvestment' amounts equals the total 'monthlySavings.amount', and the sum of all individual 'futureValue' amounts approximately equals the 'targetAmount'.
+5.  **Generate a Concluding Summary:** Write a brief, encouraging summary. Crucially, include a disclaimer that investments are subject to market risks and these are suggestions, not financial advice.
 
 **Important Rules:**
 - All currency is in INR.
 - Be encouraging and clear.
 - Do not recommend any specific financial products or companies. Stick to generic types (e.g., "Large-cap mutual fund," not "XYZ Bluechip Fund").
-- Ensure the output strictly follows the JSON schema provided.
+- Ensure the output strictly follows the JSON schema provided, including all calculation fields.
 `,
 });
 

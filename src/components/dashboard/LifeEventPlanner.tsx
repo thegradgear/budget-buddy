@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Loader2, Sparkles, Wand2, Target, PiggyBank } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Target, PiggyBank, ArrowRight } from 'lucide-react';
 import { generateLifeEventPlan, LifeEventPlanOutput } from '@/ai/flows/life-event-planner';
 import { Badge } from '../ui/badge';
 
@@ -63,6 +63,8 @@ export default function LifeEventPlanner() {
       setLoading(false);
     }
   };
+
+  const grandTotalFutureValue = plan?.investmentSuggestions.reduce((sum, item) => sum + item.futureValue, 0) ?? 0;
 
   return (
     <div className="grid md:grid-cols-2 gap-8 items-start">
@@ -159,7 +161,7 @@ export default function LifeEventPlanner() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                            <PiggyBank className="h-5 w-5" />
-                           Monthly Savings
+                           Monthly Savings Required
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -181,12 +183,31 @@ export default function LifeEventPlanner() {
                                     Est. Return: <span className="font-semibold text-primary">{item.estimatedReturn}</span>
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="space-y-4">
                                 <p className="text-sm text-muted-foreground">{item.description}</p>
+                                <div className="grid grid-cols-2 gap-4 text-center border-t pt-4">
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Monthly Investment</p>
+                                        <p className="font-bold text-lg">{formatCurrency(item.monthlyInvestment)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Projected Value</p>
+                                        <p className="font-bold text-lg">{formatCurrency(item.futureValue)}</p>
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
                     ))}
                 </div>
+
+                <Card className="bg-primary/10 border-primary/20">
+                    <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                            <span>Projected Grand Total</span>
+                            <span className="text-2xl font-bold text-primary">{formatCurrency(grandTotalFutureValue)}</span>
+                        </CardTitle>
+                    </CardHeader>
+                </Card>
 
                 <Card className="bg-secondary">
                     <CardContent className="pt-6">
