@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Pencil, Save, Wallet, TrendingDown, TrendingUp, AlertTriangle, Target, CheckCircle, DollarSign, Calendar, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { startOfMonth, endOfMonth } from 'date-fns';
+import { startOfMonth, endOfMonth, getDaysInMonth, getDate } from 'date-fns';
 import { UserProfile } from '@/types';
 import { checkBudgetAndCreateNotifications } from '@/lib/notifications';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -111,29 +111,54 @@ export default function BudgetTracker() {
         }
     };
 
-    const progressPercentage = useMemo(() => {
-        if (budget === null || budget <= 0) return 0;
-        return Math.min((expenses / budget) * 100, 100);
-    }, [expenses, budget]);
+    const { status, remainingBudget, progressPercentage, progressColorClass } = useMemo(() => {
+        if (budget === null || budget <= 0) {
+            return {
+                status: { status: 'none', message: 'No Budget Set', dailyAvg: 0 },
+                remainingBudget: 0,
+                progressPercentage: 0,
+                progressColorClass: ''
+            };
+        }
 
-    const progressColorClass = useMemo(() => {
-        const percentage = (expenses / (budget || 1)) * 100;
-        if (percentage > 90) return 'bg-gradient-to-r from-red-500 to-red-600';
-        if (percentage > 75) return 'bg-gradient-to-r from-yellow-500 to-orange-500';
-        return 'bg-gradient-to-r from-blue-500 to-blue-600';
-    }, [expenses, budget]);
+        const progress = (expenses / budget) * 100;
+        const colorClass = progress > 90 ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                           progress > 75 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                           'bg-gradient-to-r from-blue-500 to-blue-600';
 
-    const getBudgetStatus = () => {
-        if (budget === null || budget <= 0) return { status: 'none', message: 'No Budget Set' };
-        const percentage = (expenses / budget) * 100;
-        if (percentage > 100) return { status: 'critical', message: 'Over Budget' };
-        if (percentage > 90) return { status: 'warning', message: 'Almost Exceeded' };
-        if (percentage > 75) return { status: 'caution', message: 'High Usage' };
-        return { status: 'good', message: 'On Track' };
-    };
+        const now = new Date();
+        const daysInMonth = getDaysInMonth(now);
+        const daysPassed = getDate(now);
+        const actualDailyAverage = daysPassed > 0 ? expenses / daysPassed : 0;
 
-    const remainingBudget = budget ? budget - expenses : 0;
-    const status = getBudgetStatus();
+        let statusObj;
+        
+        if (progress > 100) {
+            statusObj = { status: 'critical', message: 'Over Budget', dailyAvg: actualDailyAverage };
+        } else if (progress > 90) {
+            statusObj = { status: 'warning', message: 'Almost Exceeded', dailyAvg: actualDailyAverage };
+        } else if (daysPassed > 7) {
+            const budgetedDailyAverage = budget / daysInMonth;
+            const dailySpendingRatio = budgetedDailyAverage > 0 ? actualDailyAverage / budgetedDailyAverage : 0;
+            if (dailySpendingRatio > 1.5) {
+                statusObj = { status: 'warning', message: 'High Daily Pace', dailyAvg: actualDailyAverage };
+            } else if (dailySpendingRatio > 1.2) {
+                statusObj = { status: 'caution', message: 'Pace Yourself', dailyAvg: actualDailyAverage };
+            } else {
+                statusObj = { status: 'good', message: 'On Track', dailyAvg: actualDailyAverage };
+            }
+        } else {
+            statusObj = { status: 'good', message: 'On Track', dailyAvg: actualDailyAverage };
+        }
+
+        return {
+            status: statusObj,
+            remainingBudget: budget - expenses,
+            progressPercentage: Math.min(progress, 100),
+            progressColorClass: colorClass
+        };
+    }, [budget, expenses]);
+
 
     const renderContent = () => {
         if (loading) {
@@ -226,11 +251,13 @@ export default function BudgetTracker() {
                                 
                                 <div className="flex items-center gap-3">
                                     <Badge 
-                                        variant={status.status === 'good' ? 'default' : status.status === 'critical' ? 'destructive' : 'secondary'} 
+                                        variant={status.status === 'critical' ? 'destructive' : 'secondary'} 
                                         className={`px-3 py-1 text-sm font-medium ${
                                             status.status === 'good' ? 'bg-emerald-500/10 text-emerald-700 border-emerald-200' :
                                             status.status === 'critical' ? 'bg-red-500/10 text-red-700 border-red-200' :
-                                            'bg-yellow-500/10 text-yellow-700 border-yellow-200'
+                                            status.status === 'warning' ? 'bg-amber-500/10 text-amber-700 border-amber-200' :
+                                            status.status === 'caution' ? 'bg-yellow-500/10 text-yellow-700 border-yellow-200' :
+                                            ''
                                         }`}
                                     >
                                         {status.message}
@@ -281,12 +308,12 @@ export default function BudgetTracker() {
                                         <TooltipTrigger className="w-full">
                                             <div className="relative">
                                                 <Progress 
-                                                    value={Math.min(progressPercentage, 100)} 
+                                                    value={progressPercentage} 
                                                     className="h-4 bg-slate-200 dark:bg-slate-700"
                                                 />
                                                 <div 
                                                     className={`absolute top-0 left-0 h-4 rounded-full transition-all duration-500 ${progressColorClass}`}
-                                                    style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+                                                    style={{ width: `${progressPercentage}%` }}
                                                 />
                                                 {progressPercentage > 100 && (
                                                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse" />
@@ -376,7 +403,7 @@ export default function BudgetTracker() {
                                 <CheckCircle className="h-4 w-4" />
                                 <span>Daily Avg</span>
                             </div>
-                            <div className="text-lg font-bold">{formatCurrency(expenses / new Date().getDate())}</div>
+                            <div className="text-lg font-bold">{formatCurrency(status.dailyAvg)}</div>
                         </div>
                     </div>
                 </div>
