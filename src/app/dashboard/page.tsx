@@ -47,73 +47,81 @@ export default function DashboardPage() {
     setCurrentDate(new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
   }, []);
 
-  // Fetch accounts and all their transactions
+  // Fetch accounts and set up real-time listeners for their transactions
   useEffect(() => {
     if (!user || !db) return;
-    
+  
     setLoading(true);
     const accountsCollection = collection(db, 'users', user.uid, 'accounts');
-    
-    const unsubscribe = onSnapshot(accountsCollection, async (accountsSnapshot) => {
-        const accountsData: Account[] = accountsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Account));
-        setAccounts(accountsData);
-
-        if (accountsData.length > 0) {
-            let activeAccount = accountsData.find(a => a.isActive);
-
-            // Migration step for existing users: if no account is active, make the first one active.
-            if (!activeAccount) {
-                activeAccount = accountsData[0];
-                try {
-                  const accountRef = doc(db, 'users', user.uid, 'accounts', activeAccount.id);
-                  await updateDoc(accountRef, { isActive: true });
-                  // This will trigger a re-render with the correct active account.
-                  return;
-                } catch (error) {
-                  console.error("Error setting default active account:", error);
-                  toast({ title: "Error", description: "Could not set a default active account.", variant: "destructive" });
-                }
-            }
-            
-            if (activeAccount) {
-              setActiveAccountId(activeAccount.id);
-            }
-
-            // Fetch transactions for ALL accounts
-            const transactionsMap = new Map<string, Transaction[]>();
-            const transactionPromises = accountsData.map(account => {
-                const transactionsQuery = query(
-                    collection(db, 'users', user.uid, 'accounts', account.id, 'transactions')
-                );
-                return getDocs(transactionsQuery).then(snapshot => {
-                    const transactionsData: Transaction[] = snapshot.docs.map(doc => {
-                        const data = doc.data();
-                        return {
-                            id: doc.id,
-                            ...data,
-                            date: (data.date as Timestamp).toDate(),
-                        } as Transaction;
-                    });
-                    transactionsMap.set(account.id, transactionsData);
-                });
-            });
-
-            await Promise.all(transactionPromises);
-            setAllTransactions(transactionsMap);
+  
+    const unsubscribeAccounts = onSnapshot(accountsCollection, (accountsSnapshot) => {
+      const accountsData: Account[] = accountsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Account));
+      setAccounts(accountsData);
+  
+      if (accountsData.length > 0) {
+        let activeAccount = accountsData.find(a => a.isActive);
+  
+        if (!activeAccount) {
+          activeAccount = accountsData[0];
+          const accountRef = doc(db, 'users', user.uid, 'accounts', activeAccount.id);
+          updateDoc(accountRef, { isActive: true }).catch(err => console.error("Error setting default active account:", err));
+          // Let the snapshot listener handle the state update
         } else {
-            setActiveAccountId(null);
-            setAllTransactions(new Map());
+            setActiveAccountId(activeAccount.id);
         }
-
-        setLoading(false);
+      } else {
+        setActiveAccountId(null);
+        setAllTransactions(new Map());
+      }
+  
+      setLoading(false);
     }, (error) => {
-        console.error("Error fetching accounts: ", error);
-        toast({ title: "Error", description: "Could not fetch accounts.", variant: "destructive" });
-        setLoading(false);
+      console.error("Error fetching accounts: ", error);
+      toast({ title: "Error", description: "Could not fetch accounts.", variant: "destructive" });
+      setLoading(false);
+    });
+  
+    return () => unsubscribeAccounts();
+  }, [user, toast]);
+
+  // Effect to set up transaction listeners when accounts change
+  useEffect(() => {
+    if (!user || !db || accounts.length === 0) {
+        setAllTransactions(new Map()); // Clear transactions if no accounts
+        return;
+    }
+
+    const unsubscribers: (() => void)[] = [];
+
+    accounts.forEach(account => {
+        const transactionsQuery = query(
+            collection(db, 'users', user.uid, 'accounts', account.id, 'transactions')
+        );
+        const unsubscribe = onSnapshot(transactionsQuery, (snapshot) => {
+            const transactionsData: Transaction[] = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    date: (data.date as Timestamp).toDate(),
+                } as Transaction;
+            });
+            
+            setAllTransactions(prevMap => {
+                const newMap = new Map(prevMap);
+                newMap.set(account.id, transactionsData);
+                return newMap;
+            });
+        }, (error) => {
+            console.error(`Error fetching transactions for account ${account.id}:`, error);
+        });
+        unsubscribers.push(unsubscribe);
     });
 
-    return () => unsubscribe();
-  }, [user, toast]);
+    return () => {
+        unsubscribers.forEach(unsub => unsub());
+    };
+  }, [user, accounts]);
   
   const accountsWithBalance = useMemo(() => {
     return accounts.map(account => {
