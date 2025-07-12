@@ -111,7 +111,7 @@ const createTransactionFromTextFlow = ai.defineFlow(
               date: Timestamp.fromDate(transactionDate),
               category: category,
             };
-            console.log("DEBUG: Saving transaction with userId:", userId, "and accountId:", accountId, "data:", newTransaction);
+            
             const docRef = await addDoc(collection(db!, 'users', userId, 'accounts', accountId, 'transactions'), newTransaction);
             
             return {
