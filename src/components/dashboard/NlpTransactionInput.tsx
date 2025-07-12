@@ -50,12 +50,15 @@ export default function NlpTransactionInput({ activeAccountId }: Props) {
         }
 
         setLoading(true);
+        console.log('Input text:', values.text); // Debug log
         try {
             // 1. Get AI-processed data from the flow
             const result = await createTransactionFromText({
                 text: values.text
             });
             
+            console.log('AI Result:', result); // Debug log
+
             // 2. Save the processed data to Firebase on the client side
             const newTransaction = {
                 description: result.description,
@@ -81,7 +84,7 @@ export default function NlpTransactionInput({ activeAccountId }: Props) {
             }
 
         } catch (error: any) {
-            console.error("Error creating transaction from text: ", error);
+            console.error("Full error:", error); // More detailed error logging
             toast({
                 title: "AI Error",
                 description: error.message || "Could not understand the transaction details.",
