@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -13,6 +14,8 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Loader2, Wand2, Send } from 'lucide-react';
 import { createTransactionFromText } from '@/ai/flows/create-transaction-from-text';
 import { checkBudgetAndCreateNotifications } from '@/lib/notifications';
+import { db } from '@/lib/firebase';
+import { addDoc, collection, Timestamp } from 'firebase/firestore';
 
 const formSchema = z.object({
   text: z.string().min(1, 'Please enter a description.'),
@@ -48,11 +51,24 @@ export default function NlpTransactionInput({ activeAccountId }: Props) {
 
         setLoading(true);
         try {
+            // 1. Get AI-processed data from the flow
             const result = await createTransactionFromText({
-                userId: user.uid,
-                accountId: activeAccountId,
                 text: values.text
             });
+            
+            // 2. Save the processed data to Firebase on the client side
+            const newTransaction = {
+                description: result.description,
+                amount: result.amount,
+                type: result.type,
+                date: Timestamp.fromDate(result.date),
+                category: result.category,
+            };
+            
+            const docRef = await addDoc(
+              collection(db!, 'users', user.uid, 'accounts', activeAccountId, 'transactions'), 
+              newTransaction
+            );
             
             toast({
                 title: 'Transaction Added',

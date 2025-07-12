@@ -11,17 +11,15 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 import { categorizeTransaction, CategorizeTransactionInput } from './categorize-transaction';
-import { db } from '@/lib/firebase';
-import { addDoc, collection, Timestamp } from 'firebase/firestore';
 
+// The input is just the raw text from the user
 export type CreateTransactionFromTextInput = {
-  userId: string;
-  accountId: string;
   text: string;
 };
 
+// The output is the structured data, ready to be saved
 export type CreateTransactionFromTextOutput = {
-  id: string;
+  id: string; // Will be empty, client will generate it
   description: string;
   amount: number;
   type: 'income' | 'expense';
@@ -58,29 +56,13 @@ const createTransactionPrompt = ai.definePrompt({
     },
 });
 
-const createTransactionFromTextFlow = ai.defineFlow(
-  {
-    name: 'createTransactionFromTextFlow',
-    inputSchema: z.object({
-      userId: z.string(),
-      accountId: z.string(),
-      text: z.string(),
-    }),
-    outputSchema: z.object({
-      id: z.string(),
-      description: z.string(),
-      amount: z.number(),
-      type: z.enum(['income', 'expense']),
-      category: z.string(),
-      date: z.date(),
-    }),
-  },
-  async ({ userId, accountId, text }) => {
+// Wrapper function that the client will call. This is NOT a flow.
+export async function createTransactionFromText(input: CreateTransactionFromTextInput): Promise<CreateTransactionFromTextOutput> {
     const maxRetries = 3;
     let attempt = 0;
     while (attempt < maxRetries) {
         try {
-            const { output: transactionData } = await createTransactionPrompt(text);
+            const { output: transactionData } = await createTransactionPrompt(input.text);
 
             if (!transactionData) {
                 throw new Error("Could not parse transaction from text.");
@@ -104,22 +86,13 @@ const createTransactionFromTextFlow = ai.defineFlow(
                 transactionDate.setFullYear(transactionDate.getFullYear() - 1);
             }
 
-            const newTransaction = {
-              description: transactionData.description,
-              amount: transactionData.amount,
-              type: transactionData.type,
-              date: Timestamp.fromDate(transactionDate),
-              category: category,
-            };
-            
-            const docRef = await addDoc(collection(db!, 'users', userId, 'accounts', accountId, 'transactions'), newTransaction);
-            
+            // Return the processed data WITHOUT saving to Firebase
             return {
-                id: docRef.id,
-                description: newTransaction.description,
-                amount: newTransaction.amount,
-                type: newTransaction.type,
-                category: newTransaction.category,
+                id: '', // Will be set after client saves
+                description: transactionData.description,
+                amount: transactionData.amount,
+                type: transactionData.type,
+                category: category,
                 date: transactionDate,
             };
         } catch (error: any) {
@@ -138,15 +111,9 @@ const createTransactionFromTextFlow = ai.defineFlow(
                     }
                     throw error;
                 }
-                throw new Error("An unexpected error occurred while creating the transaction.");
+                throw new Error("An unexpected error occurred while processing the transaction text.");
             }
         }
     }
     throw new Error("Failed to create transaction from text after multiple retries.");
-  }
-);
-
-
-export async function createTransactionFromText(input: CreateTransactionFromTextInput): Promise<CreateTransactionFromTextOutput> {
-  return createTransactionFromTextFlow(input);
 }
