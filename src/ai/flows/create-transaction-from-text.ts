@@ -63,7 +63,7 @@ const createTransactionFromTextFlow = ai.defineFlow(
 
         Analyze the text and extract the following information:
         1.  **description**: Create a short, clean description of the transaction. For example, if the user says "paid for the new superman movie", the description should be "Movie".
-        2.  **amount**: The transaction amount. This should always be a positive number. If the amount is ambiguous or not present, you must throw an error with the message "Invalid transaction amount".
+        2.  **amount**: The transaction amount. This must always be a positive number. If the amount is ambiguous or not present, you must throw an error with the message "Invalid transaction amount".
         3.  **type**: Determine if it's 'income' (money received) or 'expense' (money spent).
         4.  **date**: The date of the transaction. Today's date is {{currentDate}}. If the user mentions a relative date like "yesterday" or "last Tuesday", calculate the absolute date in 'YYYY-MM-DD' format.
 
@@ -106,6 +106,12 @@ const createTransactionFromTextFlow = ai.defineFlow(
               date: Timestamp.fromDate(transactionDate),
               category: category,
             };
+            
+            console.log('DEBUG: Attempting to write to Firestore with the following data:');
+            console.log('DEBUG: userId:', userId);
+            console.log('DEBUG: accountId:', accountId);
+            console.log('DEBUG: newTransaction:', JSON.stringify(newTransaction, null, 2));
+
 
             const docRef = await addDoc(collection(db!, 'users', userId, 'accounts', accountId, 'transactions'), newTransaction);
             
