@@ -28,6 +28,7 @@ import { Card } from '@/components/ui/card';
 import BudgetTracker from '@/components/dashboard/BudgetTracker';
 import FiftyThirtyTwentyRule from '@/components/dashboard/FiftyThirtyTwentyRule';
 import { startOfMonth, endOfMonth } from 'date-fns';
+import NlpTransactionInput from '@/components/dashboard/NlpTransactionInput';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -219,6 +220,8 @@ export default function DashboardPage() {
         <p className="text-lg text-muted-foreground">{currentDate}</p>
         <h1 className="text-3xl font-bold text-foreground">Welcome back, {user?.displayName || 'User'}!</h1>
       </div>
+
+      <NlpTransactionInput activeAccountId={activeAccountId} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <BudgetTracker />
