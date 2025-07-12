@@ -50,7 +50,7 @@ const createTransactionFromTextFlow = ai.defineFlow(
     
     const TransactionDataSchema = z.object({
         description: z.string().describe('A short, concise description of the transaction (e.g., "Groceries", "Movie tickets", "Salary").'),
-        amount: z.number().describe('The transaction amount as a number.'),
+        amount: z.number().describe('The transaction amount as a number. This must always be a positive number.'),
         type: z.enum(['income', 'expense']).describe("The type of transaction, either 'income' or 'expense'."),
         date: z.string().describe("The date of the transaction in 'YYYY-MM-DD' format. The current year is " + new Date().getFullYear() + "."),
     });
@@ -63,7 +63,7 @@ const createTransactionFromTextFlow = ai.defineFlow(
 
         Analyze the text and extract the following information:
         1.  **description**: Create a short, clean description of the transaction. For example, if the user says "paid for the new superman movie", the description should be "Movie".
-        2.  **amount**: The transaction amount. This should always be a positive number.
+        2.  **amount**: The transaction amount. This should always be a positive number. If the amount is ambiguous or not present, you must throw an error with the message "Invalid transaction amount".
         3.  **type**: Determine if it's 'income' (money received) or 'expense' (money spent).
         4.  **date**: The date of the transaction. Today's date is {{currentDate}}. If the user mentions a relative date like "yesterday" or "last Tuesday", calculate the absolute date in 'YYYY-MM-DD' format.
 
@@ -75,41 +75,66 @@ const createTransactionFromTextFlow = ai.defineFlow(
         },
     });
 
-    const { output: transactionData } = await prompt(text);
+    const maxRetries = 3;
+    let attempt = 0;
+    while (attempt < maxRetries) {
+        try {
+            const { output: transactionData } = await prompt(text);
 
-    if (!transactionData) {
-        throw new Error("Could not parse transaction from text.");
+            if (!transactionData) {
+                throw new Error("Could not parse transaction from text.");
+            }
+            
+            // Manual validation after getting AI response
+            if (transactionData.amount <= 0) {
+                throw new Error("Invalid transaction amount");
+            }
+
+            const categorizationInput: CategorizeTransactionInput = {
+                description: transactionData.description,
+                type: transactionData.type,
+            };
+            
+            const { category } = await categorizeTransaction(categorizationInput);
+            
+            const transactionDate = new Date(transactionData.date);
+
+            const newTransaction = {
+              description: transactionData.description,
+              amount: transactionData.amount,
+              type: transactionData.type,
+              date: Timestamp.fromDate(transactionDate),
+              category: category,
+            };
+
+            const docRef = await addDoc(collection(db!, 'users', userId, 'accounts', accountId, 'transactions'), newTransaction);
+            
+            return {
+                ...newTransaction,
+                id: docRef.id,
+                date: transactionDate,
+            };
+        } catch (error: any) {
+            attempt++;
+            const isLastAttempt = attempt >= maxRetries;
+            const isOverloaded = error.message && (error.message.includes('503') || error.message.includes('overloaded'));
+            
+            if ((isOverloaded || error.message.includes('Invalid transaction amount')) && !isLastAttempt) {
+              const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
+              console.log(`Attempt ${attempt} failed. Retrying in ${delay / 1000}s...`);
+              await new Promise(resolve => setTimeout(resolve, delay));
+            } else {
+                if (error instanceof Error) {
+                    if (error.message.includes('Invalid transaction amount')) {
+                        throw new Error("The AI failed to extract a valid amount from your text. Please state the amount clearly (e.g., '100 rupees', '5k').");
+                    }
+                    throw error;
+                }
+                throw new Error("An unexpected error occurred while creating the transaction.");
+            }
+        }
     }
-    
-    // Manual validation after getting AI response
-    if (transactionData.amount <= 0) {
-        throw new Error("Transaction amount must be a positive number.");
-    }
-
-    const categorizationInput: CategorizeTransactionInput = {
-        description: transactionData.description,
-        type: transactionData.type,
-    };
-    
-    const { category } = await categorizeTransaction(categorizationInput);
-    
-    const transactionDate = new Date(transactionData.date);
-
-    const newTransaction = {
-      description: transactionData.description,
-      amount: transactionData.amount,
-      type: transactionData.type,
-      date: Timestamp.fromDate(transactionDate),
-      category: category,
-    };
-
-    const docRef = await addDoc(collection(db!, 'users', userId, 'accounts', accountId, 'transactions'), newTransaction);
-    
-    return {
-        ...newTransaction,
-        id: docRef.id,
-        date: transactionDate,
-    };
+    throw new Error("Failed to create transaction from text after multiple retries.");
   }
 );
 
