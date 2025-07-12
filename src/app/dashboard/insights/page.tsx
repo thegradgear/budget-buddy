@@ -160,7 +160,7 @@ export default function InsightsPage() {
                   AI Financial Co-Pilot
                 </h1>
                 <p className="text-lg text-muted-foreground">
-                    Get a holistic view of your financial habits. Our AI will analyze your transactions across all accounts to provide personalized advice.
+                    Get personalized advice by letting our AI analyze your entire transaction history across all accounts.
                 </p>
             </div>
             
