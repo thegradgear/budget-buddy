@@ -50,7 +50,7 @@ const createTransactionFromTextFlow = ai.defineFlow(
     
     const TransactionDataSchema = z.object({
         description: z.string().describe('A short, concise description of the transaction (e.g., "Groceries", "Movie tickets", "Salary").'),
-        amount: z.number().positive().describe('The transaction amount as a positive number.'),
+        amount: z.number().describe('The transaction amount as a number.'),
         type: z.enum(['income', 'expense']).describe("The type of transaction, either 'income' or 'expense'."),
         date: z.string().describe("The date of the transaction in 'YYYY-MM-DD' format. The current year is " + new Date().getFullYear() + "."),
     });
@@ -59,15 +59,13 @@ const createTransactionFromTextFlow = ai.defineFlow(
         name: 'createTransactionPrompt',
         input: { schema: z.string() },
         output: { schema: TransactionDataSchema },
-        prompt: `You are an expert financial assistant for users in India. Your task is to extract transaction details from a user's text input. The user is adding a transaction to their Budget Buddy app.
+        prompt: `You are an expert financial assistant for users in India. Your task is to extract transaction details from a user's text input. The user is adding a transaction to their Budget Buddy app. The currency is always Indian Rupees (INR).
 
         Analyze the text and extract the following information:
         1.  **description**: Create a short, clean description of the transaction. For example, if the user says "paid for the new superman movie", the description should be "Movie".
         2.  **amount**: The transaction amount. This should always be a positive number.
         3.  **type**: Determine if it's 'income' (money received) or 'expense' (money spent).
         4.  **date**: The date of the transaction. Today's date is {{currentDate}}. If the user mentions a relative date like "yesterday" or "last Tuesday", calculate the absolute date in 'YYYY-MM-DD' format.
-
-        The currency is always Indian Rupees (INR).
 
         User Text: '{{text}}'`,
         template: {
@@ -82,7 +80,8 @@ const createTransactionFromTextFlow = ai.defineFlow(
     if (!transactionData) {
         throw new Error("Could not parse transaction from text.");
     }
-
+    
+    // Manual validation after getting AI response
     if (transactionData.amount <= 0) {
         throw new Error("Transaction amount must be a positive number.");
     }
