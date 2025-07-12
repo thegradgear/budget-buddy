@@ -51,10 +51,19 @@ export default function InsightsPage() {
 
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab) {
+    if (tab && ['report', 'health-score', 'event-planner', 'monthly-report'].includes(tab)) {
         setActiveTab(tab);
+    } else {
+        // If tab is invalid or not present, set default and update URL
+        router.replace('/dashboard/insights?tab=report', { scroll: false });
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    router.push(`/dashboard/insights?tab=${newTab}`, { scroll: false });
+  };
+
 
   useEffect(() => {
     if (!user || !db) return;
@@ -181,7 +190,7 @@ export default function InsightsPage() {
                         <p className="mt-4 text-muted-foreground">Loading your financial data...</p>
                     </div>
                 ) : (
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+                    <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
                         <TabsList className="grid w-full grid-cols-4 max-w-4xl mx-auto h-12">
                             <TabsTrigger value="report" className="h-full text-base gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                                 <FileText className="h-5 w-5" />
