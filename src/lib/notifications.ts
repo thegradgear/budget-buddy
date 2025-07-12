@@ -124,12 +124,17 @@ export async function sendMonthlySummaryNotificationIfNeeded(userId: string) {
             monthlyBudget: userData.monthlyBudget,
             monthName: format(lastMonth, 'MMMM'),
         });
+        
+        const monthParam = format(lastMonth, 'yyyy-MM');
+        const link = `/dashboard/insights?tab=monthly-report&month=${monthParam}`;
+        const fullMessage = `${message} Click here to view your detailed monthly report.`;
 
         await addDoc(collection(db, 'users', userId, 'notifications'), {
-            message,
+            message: fullMessage,
             type: 'info',
             read: false,
             createdAt: Timestamp.now(),
+            link: link,
         });
 
         await updateDoc(userDocRef, { lastMonthlySummarySent: lastMonthStr });

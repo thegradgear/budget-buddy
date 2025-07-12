@@ -14,9 +14,12 @@ import { formatDistanceToNow, startOfMonth, endOfMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../ui/scroll-area';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
 
 export default function NotificationBell() {
     const { user } = useAuth();
+    const router = useRouter();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
@@ -121,6 +124,22 @@ export default function NotificationBell() {
         }
     }
     
+    const handleNotificationClick = async (notif: Notification) => {
+        if (!user || !db) return;
+    
+        // Mark as read
+        if (!notif.read) {
+          const notifRef = doc(db, 'users', user.uid, 'notifications', notif.id);
+          await updateDoc(notifRef, { read: true });
+        }
+    
+        // Navigate if there's a link
+        if (notif.link) {
+          router.push(notif.link);
+          setIsOpen(false);
+        }
+    };
+
     const BellIcon = () => {
         if (budgetStatus === 'danger') {
             return <BellRing className="h-5 w-5 text-destructive" />;
@@ -159,7 +178,11 @@ export default function NotificationBell() {
                             {notifications.length > 0 ? (
                                 <div className="divide-y">
                                 {notifications.slice(0, 4).map(notif => (
-                                    <div key={notif.id} className={cn("p-4", !notif.read && "bg-secondary")}>
+                                    <div 
+                                        key={notif.id} 
+                                        className={cn("p-4", !notif.read && "bg-secondary", notif.link && "cursor-pointer hover:bg-accent")}
+                                        onClick={() => handleNotificationClick(notif)}
+                                    >
                                         <div className="flex items-start gap-4">
                                             <div className="w-5 h-5 shrink-0 mt-0.5 flex items-center justify-center">
                                                 {notif.type === 'danger' && <AlertCircle className="h-5 w-5 text-destructive" />}

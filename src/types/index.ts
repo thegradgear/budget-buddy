@@ -24,6 +24,7 @@ export type Notification = {
   type: 'warning' | 'danger' | 'info';
   read: boolean;
   createdAt: Date;
+  link?: string;
 };
 
 export type FinancialHealthScore = {

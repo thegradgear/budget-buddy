@@ -3,19 +3,20 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, doc, getDoc, Timestamp, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, query, doc, getDoc, Timestamp, updateDoc, where } from 'firebase/firestore';
 import { Transaction, UserProfile, Account } from '@/types';
 import { Button } from '@/components/ui/button';
 import { getSpendingSuggestions } from '@/ai/flows/spending-suggestions';
-import { Lightbulb, Loader2, ArrowLeft, Sparkles, FileText, HeartPulse, Map } from 'lucide-react';
+import { Lightbulb, Loader2, ArrowLeft, Sparkles, FileText, HeartPulse, Map, CalendarDays } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
-import { useRouter } from 'next/navigation';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FinancialHealthScore from '@/components/dashboard/FinancialHealthScore';
 import LifeEventPlanner from '@/components/dashboard/LifeEventPlanner';
+import MonthlyReport from '@/components/dashboard/MonthlyReport';
 
 // Helper function to format the AI response
 const formatAiResponse = (response: string): string => {
@@ -38,6 +39,7 @@ const formatAiResponse = (response: string): string => {
 export default function InsightsPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [reportData, setReportData] = useState<{ report: string; generatedAt: string; } | null>(null);
@@ -45,6 +47,14 @@ export default function InsightsPage() {
   const [loadingData, setLoadingData] = useState(true);
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [activeTab, setActiveTab] = useState('report');
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab) {
+        setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!user || !db) return;
@@ -171,8 +181,8 @@ export default function InsightsPage() {
                         <p className="mt-4 text-muted-foreground">Loading your financial data...</p>
                     </div>
                 ) : (
-                    <Tabs defaultValue="report" className="space-y-4">
-                        <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto h-12">
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+                        <TabsList className="grid w-full grid-cols-4 max-w-4xl mx-auto h-12">
                             <TabsTrigger value="report" className="h-full text-base gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                                 <FileText className="h-5 w-5" />
                                 Financial Report
@@ -184,6 +194,10 @@ export default function InsightsPage() {
                             <TabsTrigger value="event-planner" className="h-full text-base gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                                 <Map className="h-5 w-5" />
                                 Life Event Plan
+                            </TabsTrigger>
+                            <TabsTrigger value="monthly-report" className="h-full text-base gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                                <CalendarDays className="h-5 w-5" />
+                                Monthly Report
                             </TabsTrigger>
                         </TabsList>
                         <TabsContent value="report" className="flex flex-col items-center max-w-4xl mx-auto">
@@ -229,6 +243,9 @@ export default function InsightsPage() {
                         </TabsContent>
                         <TabsContent value="event-planner">
                             <LifeEventPlanner />
+                        </TabsContent>
+                        <TabsContent value="monthly-report">
+                            <MonthlyReport allTransactions={allTransactions} />
                         </TabsContent>
                     </Tabs>
                 )}
