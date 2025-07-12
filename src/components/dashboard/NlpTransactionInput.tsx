@@ -50,14 +50,14 @@ export default function NlpTransactionInput({ activeAccountId }: Props) {
         }
 
         setLoading(true);
-        console.log('Input text:', values.text); // Debug log
+        console.log('Input text:', values.text);
         try {
-            // 1. Get AI-processed data from the flow
+            // 1. Get AI-processed (or fallback-processed) data from the flow
             const result = await createTransactionFromText({
                 text: values.text
             });
             
-            console.log('AI Result:', result); // Debug log
+            console.log('Processed Result:', result);
 
             // 2. Save the processed data to Firebase on the client side
             const newTransaction = {
@@ -75,7 +75,7 @@ export default function NlpTransactionInput({ activeAccountId }: Props) {
             
             toast({
                 title: 'Transaction Added',
-                description: `Added ${result.type} of ${result.amount} for "${result.description}".`,
+                description: `Added ${result.type} of ${result.amount.toLocaleString('en-IN')} for "${result.description}".`,
             });
             form.reset();
 
@@ -84,9 +84,9 @@ export default function NlpTransactionInput({ activeAccountId }: Props) {
             }
 
         } catch (error: any) {
-            console.error("Full error:", error); // More detailed error logging
+            console.error("Full error:", error);
             toast({
-                title: "AI Error",
+                title: "Processing Error",
                 description: error.message || "Could not understand the transaction details.",
                 variant: "destructive"
             });
