@@ -39,8 +39,8 @@ export default function NlpTransactionInput({ activeAccountId }: Props) {
     const handleAddTransaction = async (values: FormValues) => {
         if (!user || !activeAccountId) {
             toast({
-                title: "Error",
-                description: "No active account selected. Please activate an account to add a transaction.",
+                title: "No Active Account",
+                description: "Please select an active account on the dashboard before adding a transaction.",
                 variant: "destructive"
             });
             return;
