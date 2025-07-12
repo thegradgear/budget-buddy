@@ -8,7 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 import { categorizeTransaction, CategorizeTransactionInput } from './categorize-transaction';
 import { db } from '@/lib/firebase';
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
