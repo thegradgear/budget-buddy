@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,11 +11,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
-import { Loader2, Wand2, Send } from 'lucide-react';
+import { Loader2, Wand2, Send, Mic } from 'lucide-react';
 import { createTransactionFromText } from '@/ai/flows/create-transaction-from-text';
 import { checkBudgetAndCreateNotifications } from '@/lib/notifications';
 import { db } from '@/lib/firebase';
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
+import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   text: z.string().min(1, 'Please enter a description.'),
@@ -32,12 +34,35 @@ export default function NlpTransactionInput({ activeAccountId }: Props) {
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
 
+    const {
+        isListening,
+        transcript,
+        startListening,
+        stopListening,
+        hasRecognitionSupport,
+      } = useSpeechRecognition();
+
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             text: '',
         },
     });
+
+    useEffect(() => {
+        if (transcript) {
+          form.setValue('text', transcript);
+        }
+    }, [transcript, form]);
+
+    const handleMicClick = () => {
+        if (isListening) {
+          stopListening();
+        } else {
+          form.reset({ text: '' });
+          startListening();
+        }
+    };
 
     const handleAddTransaction = async (values: FormValues) => {
         if (!user || !activeAccountId) {
@@ -120,20 +145,36 @@ export default function NlpTransactionInput({ activeAccountId }: Props) {
                             control={form.control}
                             name="text"
                             render={({ field }) => (
-                                <FormItem className="flex-grow">
+                                <FormItem className="flex-grow relative">
                                     <FormControl>
                                         <Input
-                                            placeholder="e.g., 'spent 200 rupees on coffee yesterday' or 'monthly salary of 50k'"
+                                            placeholder={isListening ? "Listening..." : "e.g., 'spent 200 rupees on coffee yesterday' or 'monthly salary of 50k'"}
                                             {...field}
-                                            className="h-12 text-base"
-                                            disabled={loading}
+                                            className={cn("h-12 text-base", hasRecognitionSupport && "pr-12")}
+                                            disabled={loading || isListening}
                                         />
                                     </FormControl>
-                                    <FormMessage />
+                                    {hasRecognitionSupport && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={handleMicClick}
+                                            disabled={loading}
+                                            className={cn(
+                                                "absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 text-muted-foreground hover:text-primary",
+                                                isListening && "text-primary animate-pulse"
+                                            )}
+                                        >
+                                            <Mic className="h-5 w-5" />
+                                            <span className="sr-only">{isListening ? 'Stop listening' : 'Start listening'}</span>
+                                        </Button>
+                                    )}
+                                    <FormMessage className="absolute" />
                                 </FormItem>
                             )}
                         />
-                        <Button type="submit" disabled={loading} size="lg" className="h-12">
+                        <Button type="submit" disabled={loading || isListening} size="lg" className="h-12">
                             {loading ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
