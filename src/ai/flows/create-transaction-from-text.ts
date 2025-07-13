@@ -107,13 +107,15 @@ function fallbackParseTransaction(text: string) {
       }
   }
   
+  const fillerWordsRegex = /\b(on|for|at|a|the|of|was|were|from|in|with|to)\b/gi;
   let description = text.replace(/rs\.?|rupees|inr/gi, '')
                         .replace(/\d+(?:\.\d+)?k?/gi, '')
                         .replace(expenseKeywords, '')
                         .replace(incomeKeywords, '')
-                        .replace(/\b(on|for|at|a|the|of|was|were|from)\b/gi, '')
+                        .replace(fillerWordsRegex, '')
                         .replace(/\s+/g, ' ')
                         .trim();
+
   description = description.charAt(0).toUpperCase() + description.slice(1);
 
   if (!description) {
