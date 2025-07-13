@@ -46,7 +46,7 @@ Extract and return ONLY a JSON object with:
 - description: Brief description (e.g., "Movie ticket", "Coffee")
 - amount: Number only (e.g., 200, 5000).
 - type: "expense" if money spent, "income" if money received
-- date: Today is {{currentDate}}. Use YYYY-MM-DD format. "Yesterday" = subtract 1 day.
+- date: Today is {{currentDate}}. Use YYYY-MM-DD format. If user says 'yesterday', 'last night', or 'last monday', calculate the correct date.
 
 Rules:
 - Amount must be a positive number.
@@ -82,19 +82,36 @@ function fallbackParseTransaction(text: string) {
   }
   const amount = parseFloat(amountMatch[0]);
 
-  const expenseKeywords = /spent|paid|bought|purchase|cost|expense|bill|fee|charge|debit|withdraw|loss|lose/;
-  const incomeKeywords = /earned|received|salary|income|got|profit|bonus|refund|credit|deposit|gain|win|won/;
+  const expenseKeywords = /\b(spent|paid|bought|purchase|cost|expense|bill|fee|charge|debit|withdraw|loss|lose)\b/;
+  const incomeKeywords = /\b(earned|received|salary|income|got|profit|bonus|refund|credit|deposit|gain|win|won)\b/;
   const type = incomeKeywords.test(lowerText) ? 'income' : 'expense';
 
   const date = new Date();
-  if (lowerText.includes('yesterday')) {
+  if (lowerText.includes('yesterday') || lowerText.includes('last night')) {
     date.setDate(date.getDate() - 1);
+  } else if (lowerText.includes('last weekend')) {
+      const todayDay = date.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+      const diff = todayDay >= 6 ? todayDay - 6 : todayDay + 1; // days to subtract to get to last Saturday
+      date.setDate(date.getDate() - diff);
+  } else {
+      const dayMatch = lowerText.match(/last (monday|tuesday|wednesday|thursday|friday|saturday|sunday)/);
+      if (dayMatch) {
+          const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+          const targetDay = weekdays.indexOf(dayMatch[1]);
+          const todayDay = date.getDay();
+          let diff = todayDay - targetDay;
+          if (diff <= 0) {
+              diff += 7;
+          }
+          date.setDate(date.getDate() - diff);
+      }
   }
   
   let description = text.replace(/rs\.?|rupees|inr/gi, '')
                         .replace(/\d+(?:\.\d+)?k?/gi, '')
                         .replace(expenseKeywords, '')
                         .replace(incomeKeywords, '')
+                        .replace(/\b(on|for|at|a|the|of|was|were|from)\b/gi, '')
                         .replace(/\s+/g, ' ')
                         .trim();
   description = description.charAt(0).toUpperCase() + description.slice(1);
