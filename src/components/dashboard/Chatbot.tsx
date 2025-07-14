@@ -41,13 +41,21 @@ export default function Chatbot() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    if (scrollAreaRef.current) {
-        scrollAreaRef.current.scrollTo({
-            top: scrollAreaRef.current.scrollHeight,
-            behavior: 'smooth'
-        });
-    }
+    setTimeout(() => {
+        if (scrollAreaRef.current) {
+            scrollAreaRef.current.scrollTo({
+                top: scrollAreaRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }, 100);
   };
+  
+  useEffect(() => {
+    if (isOpen) {
+        scrollToBottom();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     scrollToBottom();
@@ -188,6 +196,12 @@ export default function Chatbot() {
     }
   };
 
+  const getInitials = (email: string | null | undefined) => {
+    if (!email) return 'U';
+    const parts = email.split('@')[0];
+    return parts.substring(0, 2).toUpperCase();
+  };
+
   return (
     <>
       {isOpen && (
@@ -258,8 +272,8 @@ export default function Chatbot() {
                                 </div>
                             </div>
                              {message.sender === 'user' && (
-                                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-                                    <User className="h-4 w-4 text-gray-600" />
+                                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center font-semibold text-xs text-gray-600">
+                                    {getInitials(user?.email)}
                                 </div>
                             )}
                         </div>
