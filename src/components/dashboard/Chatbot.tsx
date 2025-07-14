@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -17,11 +18,19 @@ import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+const suggestedQuestions = [
+    "What are my top 3 expenses this month?",
+    "How much did I spend on groceries last week?",
+    "What's my spending trend for dining out?",
+    "Show me my largest transactions"
+];
+
 type Message = {
   id: string;
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
+  suggestions?: string[];
 };
 
 export default function Chatbot() {
@@ -31,9 +40,10 @@ export default function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([
     {
         id: 'initial',
-        text: "Hello! I'm your Budget Buddy assistant. I can help you analyze your spending patterns and answer questions about your finances. Try asking me:\n\n• What are my top 3 expenses this month?\n• How much did I spend on groceries last week?\n• What's my spending trend for dining out?\n• Show me my largest transactions\n\nWhat would you like to know?",
+        text: "Hello! I'm your Budget Buddy assistant. I can help you analyze your spending patterns and answer questions about your finances. Try asking me something, or pick a suggestion below.",
         sender: 'bot',
-        timestamp: new Date()
+        timestamp: new Date(),
+        suggestions: suggestedQuestions,
     }
   ]);
   const [input, setInput] = useState('');
@@ -138,18 +148,27 @@ export default function Chatbot() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
+  const processQuestion = async (question: string) => {
+    if (!question.trim() || isLoading) return;
+    
+    // Add user message to UI
     const userMessage: Message = { 
         id: Date.now().toString(), 
-        text: input, 
+        text: question, 
         sender: 'user',
         timestamp: new Date()
     };
-    setMessages(prev => [...prev, userMessage]);
-    const currentInput = input;
+
+    // Remove suggestions from previous bot message if they exist
+    setMessages(prev => {
+        const newMessages = [...prev];
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (lastMessage && lastMessage.sender === 'bot' && lastMessage.suggestions) {
+            delete lastMessage.suggestions;
+        }
+        return [...newMessages, userMessage];
+    });
+
     setInput('');
     setIsLoading(true);
 
@@ -157,7 +176,7 @@ export default function Chatbot() {
         const financialData = await fetchFinancialData();
         const chatbotInput: FinancialChatbotInput = {
             ...financialData,
-            question: currentInput
+            question: question
         };
 
         const response = await financialChatbot(chatbotInput);
@@ -187,7 +206,17 @@ export default function Chatbot() {
     } finally {
         setIsLoading(false);
     }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    processQuestion(input);
   };
+  
+  const handleSuggestionClick = (question: string) => {
+    processQuestion(question);
+  };
+
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -198,6 +227,13 @@ export default function Chatbot() {
 
   const getInitials = (email: string | null | undefined) => {
     if (!email) return 'U';
+    if(user?.displayName) {
+        const parts = user.displayName.split(' ').filter(Boolean);
+        if (parts.length > 1) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        return user.displayName.substring(0, 2).toUpperCase();
+    }
     const parts = email.split('@')[0];
     return parts.substring(0, 2).toUpperCase();
   };
@@ -234,46 +270,63 @@ export default function Chatbot() {
                 <ScrollArea className="h-full p-4" viewportRef={scrollAreaRef}>
                     <div className="space-y-4">
                     {messages.map((message) => (
-                        <div key={message.id} className={cn(
-                            'flex items-end gap-2 animate-in fade-in-0 slide-in-from-bottom-1 duration-200',
-                            message.sender === 'user' ? 'justify-end' : 'justify-start'
-                        )}>
-                            {message.sender === 'bot' && (
-                                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center">
-                                    <Bot className="h-4 w-4 text-white" />
-                                </div>
-                            )}
-                            <div className="flex flex-col">
-                                <div
-                                    className={cn(
-                                    'max-w-[80%] rounded-2xl px-4 py-3 text-sm',
-                                    message.sender === 'user'
-                                        ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-br-none'
-                                        : 'bg-gray-100 text-gray-800 rounded-bl-none'
-                                    )}
-                                >
-                                    <ReactMarkdown
-                                        remarkPlugins={[remarkGfm]}
-                                        components={{
-                                            p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
-                                            strong: ({node, ...props}) => <strong className="font-semibold" {...props} />,
-                                            ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2" {...props} />,
-                                            li: ({node, ...props}) => <li className="mb-1" {...props} />
-                                        }}
+                        <div key={message.id}>
+                            <div className={cn(
+                                'flex items-end gap-2 animate-in fade-in-0 slide-in-from-bottom-1 duration-200',
+                                message.sender === 'user' ? 'justify-end' : 'justify-start'
+                            )}>
+                                {message.sender === 'bot' && (
+                                    <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center">
+                                        <Bot className="h-4 w-4 text-white" />
+                                    </div>
+                                )}
+                                <div className="flex flex-col">
+                                    <div
+                                        className={cn(
+                                        'max-w-[85%] rounded-2xl px-4 py-3 text-sm',
+                                        message.sender === 'user'
+                                            ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-br-none'
+                                            : 'bg-gray-100 text-gray-800 rounded-bl-none'
+                                        )}
                                     >
-                                        {message.text}
-                                    </ReactMarkdown>
+                                        <ReactMarkdown
+                                            remarkPlugins={[remarkGfm]}
+                                            components={{
+                                                p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                                                strong: ({node, ...props}) => <strong className="font-semibold" {...props} />,
+                                                ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2" {...props} />,
+                                                li: ({node, ...props}) => <li className="mb-1" {...props} />
+                                            }}
+                                        >
+                                            {message.text}
+                                        </ReactMarkdown>
+                                    </div>
+                                    <div className={cn(
+                                        'text-xs text-gray-500 mt-1 px-1',
+                                        message.sender === 'user' ? 'text-right' : 'text-left'
+                                    )}>
+                                        {format(message.timestamp, 'HH:mm')}
+                                    </div>
                                 </div>
-                                <div className={cn(
-                                    'text-xs text-gray-500 mt-1 px-1',
-                                    message.sender === 'user' ? 'text-right' : 'text-left'
-                                )}>
-                                    {format(message.timestamp, 'HH:mm')}
-                                </div>
+                                {message.sender === 'user' && (
+                                    <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center font-semibold text-xs text-gray-600">
+                                        {getInitials(user?.email)}
+                                    </div>
+                                )}
                             </div>
-                             {message.sender === 'user' && (
-                                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center font-semibold text-xs text-gray-600">
-                                    {getInitials(user?.email)}
+                             {message.sender === 'bot' && message.suggestions && (
+                                <div className="mt-2 ml-10 space-y-2 animate-in fade-in-0 slide-in-from-bottom-1 duration-200">
+                                    {message.suggestions.map((suggestion, index) => (
+                                        <Button 
+                                            key={index}
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full justify-start h-auto py-2 text-left"
+                                            onClick={() => handleSuggestionClick(suggestion)}
+                                        >
+                                            {suggestion}
+                                        </Button>
+                                    ))}
                                 </div>
                             )}
                         </div>
@@ -300,7 +353,7 @@ export default function Chatbot() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask about your spending, transactions, or budget..."
+                  placeholder="Ask about your spending..."
                   className="pr-12 h-11 border-2 focus:border-blue-500 transition-colors"
                   disabled={isLoading}
                 />
