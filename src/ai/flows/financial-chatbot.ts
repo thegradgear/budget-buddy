@@ -66,7 +66,7 @@ const financialChatbotFlow = ai.defineFlow(
         }
     
         // Optional: you can perform actions after streaming is complete
-        const finalResponse = await response;
+        await response;
     });
   }
 );
