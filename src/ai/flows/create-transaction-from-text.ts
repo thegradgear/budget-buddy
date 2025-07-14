@@ -6,6 +6,8 @@
  */
 import {categorizeTransaction, CategorizeTransactionInput} from './categorize-transaction';
 import { z } from 'zod';
+import { subMonths, startOfMonth, setDate, subDays, startOfWeek } from 'date-fns';
+
 
 // Input and Output types remain the same for the client
 export type CreateTransactionFromTextInput = {
@@ -44,9 +46,19 @@ function fallbackParseTransaction(text: string) {
   const incomeKeywords = /\b(earned|received|salary|income|got|profit|bonus|refund|credit|deposit|gain|win|won)\b/;
   const type = incomeKeywords.test(lowerText) ? 'income' : 'expense';
 
-  const date = new Date();
+  let date = new Date(); // Defaults to today
   if (lowerText.includes('yesterday') || lowerText.includes('last night')) {
-    date.setDate(date.getDate() - 1);
+    date = subDays(date, 1);
+  } else if (lowerText.includes('last week')) {
+    // Set date to the middle of last week
+    date = startOfWeek(subDays(date, 7)); // Start of last week
+    date = setDate(date, date.getDate() + 3); // Middle of week
+  } else if (lowerText.includes('last month')) {
+    // Set date to the 15th of last month
+    date = startOfMonth(subMonths(date, 1));
+    date = setDate(date, 15);
+  } else if (lowerText.includes('this month')) {
+    // No change, defaults to today which is in "this month"
   } else if (lowerText.includes('last weekend')) {
       const todayDay = date.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
       const diff = todayDay >= 6 ? todayDay - 6 : todayDay + 1; // days to subtract to get to last Saturday
@@ -65,7 +77,7 @@ function fallbackParseTransaction(text: string) {
       }
   }
   
-  const fillerWordsRegex = /\b(on|for|at|a|an|the|of|was|were|from|in|with|to|is|are|my|i)\b/gi;
+  const fillerWordsRegex = /\b(on|for|at|a|an|the|of|was|were|from|in|with|to|is|are|my|i|last month|this month|last week|last night|yesterday|last (monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend))\b/gi;
   let description = text.replace(/rs\.?|rupees|inr/gi, '')
                         .replace(/\d+(?:\.\d+)?k?/gi, '')
                         .replace(expenseKeywords, '')
