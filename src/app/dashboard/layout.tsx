@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Header from '@/components/dashboard/Header';
 import { sendMonthlySummaryNotificationIfNeeded } from '@/lib/notifications';
+import Chatbot from '@/components/dashboard/Chatbot';
 
 export default function DashboardLayout({
   children,
@@ -37,6 +38,7 @@ export default function DashboardLayout({
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-4 sm:py-6 md:py-8">
         {children}
       </main>
+      <Chatbot />
     </div>
   );
 }
