@@ -9,7 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { stream } from 'genkit/stream';
+import { stream } from 'genkit';
 
 export const FinancialChatbotInputSchema = z.object({
   question: z.string().describe('The user question about their finances.'),
