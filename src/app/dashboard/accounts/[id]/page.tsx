@@ -1,3 +1,4 @@
+
 // src/app/dashboard/accounts/[id]/page.tsx
 'use client';
 
@@ -135,7 +136,7 @@ export default function AccountDetailsPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <Button variant="outline" onClick={() => router.push('/dashboard')}>
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -156,7 +157,7 @@ export default function AccountDetailsPage() {
           title="Account Snapshot"
           description={`A summary of financial activity for your ${account?.name || '...'} account.`}
         />
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           <SpendingChart transactions={transactions} />
           <SmartSuggestions transactions={transactions} account={account} />
         </div>

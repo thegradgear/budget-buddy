@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -53,11 +54,11 @@ export default function LifeEventPlanner() {
     try {
       const result = await generateLifeEventPlan(values);
       setPlan(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       toast({
         title: 'Error Generating Plan',
-        description: 'Could not create a financial plan at this time. Please try again.',
+        description: error.message || 'Could not create a financial plan at this time.',
         variant: 'destructive',
       });
     } finally {
@@ -288,105 +289,108 @@ export default function LifeEventPlanner() {
       <div className="grid lg:grid-cols-5 gap-8 items-start">
         {/* Form Section */}
         <div className="lg:col-span-2">
-          <Card className="sticky top-6 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 text-white">
-                  <Target className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold">Plan Your Goal</h3>
-                  <p className="text-sm text-muted-foreground font-normal">Start your financial journey</p>
-                </div>
-              </CardTitle>
-              <CardDescription>
-                Tell us about your financial goal and we'll create a personalized investment strategy to help you achieve it.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="goal"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>What's your financial goal?</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="e.g., Buy a new car, House down payment, Wedding expenses" 
-                            {...field} 
-                            className="h-11"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="targetAmount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Target Amount (₹)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="e.g., 5,00,000" 
-                            {...field} 
-                            value={field.value ?? ''} 
-                            className="h-11"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="monthlyIncome"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Monthly Income (₹)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="e.g., 80,000" 
-                            {...field} 
-                            value={field.value ?? ''} 
-                            className="h-11"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="years"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Time to achieve (years)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="e.g., 3" 
-                            {...field} 
-                            value={field.value ?? ''} 
-                            className="h-11"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" disabled={loading} className="w-full h-12" size="lg">
-                    {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                    {loading ? 'Creating Your Plan...' : 'Generate My Investment Plan'}
-                  </Button>
-                </form>
-              </Form>
-            </CardContent>
+          <Card className="sticky top-6 shadow-lg border-0 bg-transparent">
+            <div className='relative overflow-hidden rounded-xl border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950'>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+              <CardHeader className='relative'>
+                <CardTitle className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 text-white">
+                    <Target className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Plan Your Goal</h3>
+                    <p className="text-sm text-muted-foreground font-normal">Start your financial journey</p>
+                  </div>
+                </CardTitle>
+                <CardDescription>
+                  Tell us about your financial goal and we'll create a personalized investment strategy to help you achieve it.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className='relative'>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="goal"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>What's your financial goal?</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="e.g., Buy a new car, House down payment, Wedding expenses" 
+                              {...field} 
+                              className="h-11"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="targetAmount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Target Amount (₹)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="e.g., 5,00,000" 
+                              {...field} 
+                              value={field.value ?? ''} 
+                              className="h-11"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="monthlyIncome"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Monthly Income (₹)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="e.g., 80,000" 
+                              {...field} 
+                              value={field.value ?? ''} 
+                              className="h-11"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="years"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Time to achieve (years)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="e.g., 3" 
+                              {...field} 
+                              value={field.value ?? ''} 
+                              className="h-11"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" disabled={loading} className="w-full h-12" size="lg">
+                      {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                      {loading ? 'Creating Your Plan...' : 'Generate My Investment Plan'}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </div>
           </Card>
         </div>
 

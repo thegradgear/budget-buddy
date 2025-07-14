@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -100,11 +101,21 @@ export default function SmartSuggestions({ transactions, account }: Props) {
   const displaySuggestions = useMemo(() => formatAiResponse(suggestionsData?.suggestions || ''), [suggestionsData]);
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-            <CardTitle>Smart Suggestions</CardTitle>
-            <CardDescription>Get AI-powered tips for this account.</CardDescription>
+    <Card className="h-full flex flex-col relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+      <CardHeader className="relative flex flex-row items-start justify-between pb-4">
+        <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10">
+                <Lightbulb className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Smart Suggestions
+                </CardTitle>
+                <CardDescription className="text-sm text-muted-foreground mt-1">
+                  Get AI-powered tips for this account.
+                </CardDescription>
+            </div>
         </div>
         <Button asChild variant="link" className="text-xs p-0 h-auto">
             <Link href="/dashboard/insights">
@@ -113,7 +124,7 @@ export default function SmartSuggestions({ transactions, account }: Props) {
             </Link>
         </Button>
       </CardHeader>
-      <CardContent className="flex-grow flex flex-col">
+      <CardContent className="relative flex-grow flex flex-col">
         <div className="flex-grow min-h-[250px] relative">
           <ScrollArea className="h-full pr-4">
             {loading ? (
@@ -121,12 +132,12 @@ export default function SmartSuggestions({ transactions, account }: Props) {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : suggestionsData ? (
-              <div className="text-sm text-muted-foreground leading-relaxed">
+              <div className="text-sm text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-headings:font-semibold prose-strong:font-semibold">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{displaySuggestions}</ReactMarkdown>
               </div>
             ) : (
               <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full">
-                <Lightbulb className="h-12 w-12 mb-4 text-primary/50" />
+                <Lightbulb className="h-12 w-12 mb-4 text-primary/30" />
                 <p>Click the button to get financial advice for this account.</p>
               </div>
             )}

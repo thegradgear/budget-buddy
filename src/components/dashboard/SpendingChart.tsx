@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Transaction } from '@/types';
@@ -20,6 +21,7 @@ import {
   getYear
 } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TrendingUp } from 'lucide-react';
 
 type DateRange = '7d' | '1m' | '3m' | 'all';
 
@@ -34,7 +36,7 @@ const chartConfig = {
     }
 } satisfies ChartConfig
 
-export default function SpendingChart({ transactions }: Props) {
+export default function SpendingChart({ transactions }: {transactions: Transaction[]}) {
   const [dateRange, setDateRange] = useState<DateRange>('7d');
 
   const data = useMemo(() => {
@@ -125,25 +127,35 @@ export default function SpendingChart({ transactions }: Props) {
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Income vs. Expense: {titles[dateRange]}</CardTitle>
-          <CardDescription>A summary of your income and expenses.</CardDescription>
-        </div>
-        <Select value={dateRange} onValueChange={(value) => setDateRange(value as DateRange)}>
-            <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a date range" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="7d">Last 7 Days</SelectItem>
-                <SelectItem value="1m">This Month</SelectItem>
-                <SelectItem value="3m">Last 3 Months</SelectItem>
-                <SelectItem value="all">Overall</SelectItem>
-            </SelectContent>
-        </Select>
+    <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+        <CardHeader className="relative flex flex-row items-start justify-between pb-6">
+            <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10">
+                    <TrendingUp className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                    <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      Income vs. Expense
+                    </CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground mt-1">
+                      A summary of your income and expenses for the {titles[dateRange].toLowerCase()}.
+                    </CardDescription>
+                </div>
+            </div>
+            <Select value={dateRange} onValueChange={(value) => setDateRange(value as DateRange)}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select a date range" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="7d">Last 7 Days</SelectItem>
+                    <SelectItem value="1m">This Month</SelectItem>
+                    <SelectItem value="3m">Last 3 Months</SelectItem>
+                    <SelectItem value="all">Overall</SelectItem>
+                </SelectContent>
+            </Select>
       </CardHeader>
-      <CardContent>
+      <CardContent className="relative">
         {data.length > 0 && data.some(d => d.expenses > 0 || d.income > 0) ? (
             <ChartContainer config={chartConfig} className="h-[250px] w-full">
                 <BarChart data={data} accessibilityLayer margin={{ top: 20, right: 20, left: -10, bottom: 0 }}>
