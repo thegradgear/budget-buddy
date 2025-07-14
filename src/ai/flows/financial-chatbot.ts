@@ -57,16 +57,13 @@ const financialChatbotFlow = ai.defineFlow(
     stream: true,
   },
   async (input) => {
-    return await stream(async (s) => {
-        const { stream: responseStream, response } = await prompt(input);
-    
-        // Stream the response chunks directly to the client
-        for await (const chunk of responseStream) {
-            s.chunk(chunk.text);
-        }
-    
-        // Optional: you can perform actions after streaming is complete
-        await response;
+    const { stream: responseStream, response } = await prompt(input);
+
+    return stream(async (s) => {
+      for await (const chunk of responseStream) {
+        s.chunk(chunk.text);
+      }
+      await response;
     });
   }
 );
