@@ -248,10 +248,10 @@ export default function Chatbot() {
       )}
       <div className={cn(
         "fixed bottom-4 right-4 z-50 transition-all duration-300",
-        isOpen && "inset-2 sm:inset-auto sm:w-[400px] sm:bottom-4 sm:right-4"
+        isOpen && "inset-2 sm:inset-auto sm:bottom-4 sm:right-4 sm:w-[400px] sm:h-[600px]"
       )}>
         {isOpen ? (
-          <Card className="h-full sm:h-[600px] flex flex-col shadow-2xl rounded-xl border-2">
+          <Card className="h-full flex flex-col shadow-2xl rounded-xl border-2">
             <CardHeader className="flex flex-row items-center justify-between border-b p-4 bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div className="flex items-center gap-3">
                     <div className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500">
@@ -262,7 +262,7 @@ export default function Chatbot() {
                         <CardDescription className="text-xs text-gray-600">Your personal financial assistant</CardDescription>
                     </div>
                 </div>
-              <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="hover:bg-gray-100">
+              <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="text-muted-foreground hover:bg-gray-100 hover:text-gray-900">
                 <X className="h-5 w-5" />
               </Button>
             </CardHeader>
