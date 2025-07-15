@@ -248,10 +248,10 @@ export default function Chatbot() {
       )}
       <div className={cn(
         "fixed bottom-4 right-4 z-50 transition-all duration-300",
-        isOpen && "bottom-0 right-0 w-full h-full sm:w-[400px] sm:h-auto sm:bottom-4 sm:right-4"
+        isOpen && "inset-2 sm:inset-auto sm:w-[400px] sm:bottom-4 sm:right-4"
       )}>
         {isOpen ? (
-          <Card className="h-full sm:h-[600px] flex flex-col shadow-2xl rounded-none sm:rounded-xl border-2">
+          <Card className="h-full sm:h-[600px] flex flex-col shadow-2xl rounded-xl border-2">
             <CardHeader className="flex flex-row items-center justify-between border-b p-4 bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div className="flex items-center gap-3">
                     <div className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500">
