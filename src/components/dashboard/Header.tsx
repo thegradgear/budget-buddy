@@ -1,3 +1,4 @@
+
 // src/components/dashboard/Header.tsx
 'use client';
 
@@ -18,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LogOut, User as UserIcon, Lightbulb } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import NotificationBell from './NotificationBell';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 export default function Header() {
   const { user } = useAuth();
@@ -30,10 +32,18 @@ export default function Header() {
     router.push('/');
   };
 
-  const getInitials = (email: string | null | undefined) => {
-    if (!email) return 'U';
-    const parts = email.split('@')[0];
-    return parts.substring(0, 2).toUpperCase();
+  const getInitials = (name?: string | null, email?: string | null) => {
+    if (name) {
+      const parts = name.split(' ').filter(Boolean);
+      if (parts.length > 1) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+      return name.substring(0, 2).toUpperCase();
+    }
+    if (email) {
+      return email.substring(0, 2).toUpperCase();
+    }
+    return 'U';
   };
 
   return (
@@ -46,10 +56,19 @@ export default function Header() {
         
         {/* User Menu - Responsive */}
         <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" onClick={() => router.push('/dashboard/insights')}>
-                <Lightbulb className="mr-2 h-4 w-4" />
-                AI Insights
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="sm" onClick={() => router.push('/dashboard/insights')}>
+                      <Lightbulb className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">AI Insights</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="sm:hidden">
+                  <p>AI Insights</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             
             <NotificationBell />
 
@@ -58,9 +77,9 @@ export default function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full group border">
                     <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
-                      <AvatarImage src={user.photoURL ?? ''} alt="User avatar" />
+                      <AvatarImage src={user.photoURL ?? ''} alt={getInitials(user.displayName, user.email)} />
                       <AvatarFallback className="text-xs sm:text-sm group-hover:bg-accent">
-                        {getInitials(user.email)}
+                        {getInitials(user.displayName, user.email)}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -68,7 +87,9 @@ export default function Header() {
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">My Account</p>
+                      <p className="text-sm font-medium leading-none">
+                        {user.displayName || 'My Account'}
+                      </p>
                       <p className="text-xs leading-none text-muted-foreground truncate">
                         {user.email}
                       </p>
