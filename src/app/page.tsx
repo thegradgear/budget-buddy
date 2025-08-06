@@ -39,7 +39,7 @@ export default function Home() {
                   width="600"
                   height="400"
                   alt="Hero"
-                  className="w-full h-auto aspect-[3/2] object-cover rounded-xl shadow-2xl"
+                  className="w-full h-auto rounded-xl shadow-2xl"
                 />
               </div>
             </div>
