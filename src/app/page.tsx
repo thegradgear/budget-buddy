@@ -33,7 +33,7 @@ export default function Home() {
                   </Button>
                 </div>
               </div>
-              <div className="order-1 lg:order-2">
+              <div className="order-1 lg:order-2 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mx-auto">
                 <Image
                   src="/hero-image.png"
                   width="600"
