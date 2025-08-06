@@ -186,10 +186,6 @@ export default function Home() {
                   </p>
                 </CardContent>
                 <CardFooter className="relative flex items-center gap-4 pt-4">
-                  <Avatar className="h-10 w-10 flex-shrink-0">
-                    <AvatarImage src="https://placehold.co/40x40.png" alt="@sarah" data-ai-hint="woman smiling" />
-                    <AvatarFallback>SL</AvatarFallback>
-                  </Avatar>
                   <div>
                     <p className="font-semibold text-base">Sarah L.</p>
                     <p className="text-sm text-muted-foreground">Freelance Designer</p>
@@ -205,10 +201,6 @@ export default function Home() {
                   </p>
                 </CardContent>
                 <CardFooter className="relative flex items-center gap-4 pt-4">
-                  <Avatar className="h-10 w-10 flex-shrink-0">
-                    <AvatarImage src="https://placehold.co/40x40.png" alt="@mike" data-ai-hint="man smiling" />
-                    <AvatarFallback>MD</AvatarFallback>
-                  </Avatar>
                   <div>
                     <p className="font-semibold text-base">Mike D.</p>
                     <p className="text-sm text-muted-foreground">Software Engineer</p>
@@ -224,10 +216,6 @@ export default function Home() {
                   </p>
                 </CardContent>
                 <CardFooter className="relative flex items-center gap-4 pt-4">
-                  <Avatar className="h-10 w-10 flex-shrink-0">
-                    <AvatarImage src="https://placehold.co/40x40.png" alt="@jessica" data-ai-hint="woman happy" />
-                    <AvatarFallback>JP</AvatarFallback>
-                  </Avatar>
                   <div>
                     <p className="font-semibold text-base">Jessica P.</p>
                     <p className="text-sm text-muted-foreground">Marketing Manager</p>
