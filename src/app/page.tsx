@@ -33,7 +33,7 @@ export default function Home() {
                   </Button>
                 </div>
               </div>
-              <div className="order-1 lg:order-2 max-h-[250px] lg:max-h-full">
+              <div className="order-1 lg:order-2">
                 <Image
                   src="/hero-image.png"
                   width="600"
