@@ -35,11 +35,10 @@ export default function Home() {
               </div>
               <div className="order-1 lg:order-2">
                 <Image
-                  src="https://placehold.co/600x400.png"
+                  src="/hero-image.png"
                   width="600"
                   height="400"
                   alt="Hero"
-                  data-ai-hint="finance dashboard"
                   className="w-full h-auto aspect-[3/2] object-cover rounded-xl shadow-2xl"
                 />
               </div>
